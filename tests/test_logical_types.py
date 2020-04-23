@@ -425,9 +425,22 @@ def test_date_as_string():
     assert (datetime.date(2019, 5, 6) == data2)
 
 
+def _pandas_available():
+    try:
+        import pandas  # noqa: F401
+        import pytz  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 @pytest.mark.skipif(
     hasattr(sys, 'pypy_version_info'),
     reason='pandas takes forever to install on pypy'
+)
+@pytest.mark.skipif(
+    not _pandas_available(),
+    reason='optional pandas dependency is not installed'
 )
 def test_pandas_datetime():
     """https://github.com/gojek/feast/pull/490#issuecomment-590623525"""
