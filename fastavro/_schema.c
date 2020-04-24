@@ -1099,6 +1099,45 @@ static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* s
     return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
 }
 
+/* IncludeStringH.proto */
+#include <string.h>
+
+/* BytesEquals.proto */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* UnicodeEquals.proto */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* StrEquals.proto */
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
+#endif
+
+/* GetAttr.proto */
+static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *, PyObject *);
+
+/* HasAttr.proto */
+static CYTHON_INLINE int __Pyx_HasAttr(PyObject *, PyObject *);
+
+/* ListAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        Py_SIZE(list) = len+1;
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
 /* ListCompAppend.proto */
 #if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
@@ -1161,39 +1200,6 @@ static PyObject* __Pyx__CallUnboundCMethod2(__Pyx_CachedCFunction* cfunc, PyObje
 static CYTHON_INLINE PyObject *__Pyx_CallUnboundCMethod2(__Pyx_CachedCFunction *cfunc, PyObject *self, PyObject *arg1, PyObject *arg2);
 #else
 #define __Pyx_CallUnboundCMethod2(cfunc, self, arg1, arg2)  __Pyx__CallUnboundCMethod2(cfunc, self, arg1, arg2)
-#endif
-
-/* IncludeStringH.proto */
-#include <string.h>
-
-/* BytesEquals.proto */
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* UnicodeEquals.proto */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* StrEquals.proto */
-#if PY_MAJOR_VERSION >= 3
-#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
-#else
-#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
-#endif
-
-/* ListAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        PyList_SET_ITEM(list, len, x);
-        Py_SIZE(list) = len+1;
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
 #endif
 
 /* PyObjectLookupSpecial.proto */
@@ -1307,6 +1313,7 @@ static CYTHON_INLINE PyObject *__pyx_f_8fastavro_7_schema_extract_logical_type(P
 static PyObject *__pyx_f_8fastavro_7_schema_fullname(PyObject *, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_8fastavro_7_schema_expand_schema(PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_7_schema__reorder_float_unions(PyObject *); /*proto*/
 static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *, PyObject *, PyObject *, PyObject *, PyObject *); /*proto*/
 static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *, PyObject *, PyObject *, PyObject *); /*proto*/
 static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *, PyObject *); /*proto*/
@@ -1346,11 +1353,13 @@ static const char __pyx_k_array[] = "array";
 static const char __pyx_k_enter[] = "__enter__";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_fixed[] = "fixed";
+static const char __pyx_k_float[] = "float";
 static const char __pyx_k_force[] = "_force";
 static const char __pyx_k_items[] = "items";
 static const char __pyx_k_scale[] = "scale";
 static const char __pyx_k_split[] = "split";
 static const char __pyx_k_union[] = "union";
+static const char __pyx_k_double[] = "double";
 static const char __pyx_k_expand[] = "expand";
 static const char __pyx_k_fields[] = "fields";
 static const char __pyx_k_format[] = "format";
@@ -1417,6 +1426,7 @@ static PyObject *__pyx_n_s_decimal;
 static PyObject *__pyx_kp_s_decimal_precision_must_be_a_post;
 static PyObject *__pyx_kp_s_decimal_scale_must_be_a_postive;
 static PyObject *__pyx_n_s_doc;
+static PyObject *__pyx_n_s_double;
 static PyObject *__pyx_n_s_enter;
 static PyObject *__pyx_n_s_enum;
 static PyObject *__pyx_n_s_error;
@@ -1428,6 +1438,7 @@ static PyObject *__pyx_n_s_fastavro_parsed;
 static PyObject *__pyx_n_s_fd;
 static PyObject *__pyx_n_s_fields;
 static PyObject *__pyx_n_s_fixed;
+static PyObject *__pyx_n_s_float;
 static PyObject *__pyx_n_s_force;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_get;
@@ -2749,6 +2760,324 @@ static PyObject *__pyx_pf_8fastavro_7_schema_10parse_schema(CYTHON_UNUSED PyObje
 /* "fastavro/_schema.pyx":70
  * 
  * 
+ * cdef _reorder_float_unions(schema):             # <<<<<<<<<<<<<<
+ *     """Re-orders union types containing both "float" and "double",
+ *     so that "double" is preferred and no precision is lost when writing
+ */
+
+static PyObject *__pyx_f_8fastavro_7_schema__reorder_float_unions(PyObject *__pyx_v_schema) {
+  PyObject *__pyx_v_left = NULL;
+  PyObject *__pyx_v_right = NULL;
+  PyObject *__pyx_v_sub = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
+  PyObject *(*__pyx_t_3)(PyObject *);
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  int __pyx_t_10;
+  Py_ssize_t __pyx_t_11;
+  __Pyx_RefNannySetupContext("_reorder_float_unions", 0);
+
+  /* "fastavro/_schema.pyx":76
+ *     """
+ * 
+ *     left = []             # <<<<<<<<<<<<<<
+ *     right = []
+ * 
+ */
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_left = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "fastavro/_schema.pyx":77
+ * 
+ *     left = []
+ *     right = []             # <<<<<<<<<<<<<<
+ * 
+ *     for sub in schema:
+ */
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_right = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "fastavro/_schema.pyx":79
+ *     right = []
+ * 
+ *     for sub in schema:             # <<<<<<<<<<<<<<
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):
+ *             right.append(sub)
+ */
+  if (likely(PyList_CheckExact(__pyx_v_schema)) || PyTuple_CheckExact(__pyx_v_schema)) {
+    __pyx_t_1 = __pyx_v_schema; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
+    __pyx_t_3 = NULL;
+  } else {
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_schema); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
+  }
+  for (;;) {
+    if (likely(!__pyx_t_3)) {
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 79, __pyx_L1_error)
+        #else
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 79, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        #endif
+      } else {
+        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 79, __pyx_L1_error)
+        #else
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 79, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        #endif
+      }
+    } else {
+      __pyx_t_4 = __pyx_t_3(__pyx_t_1);
+      if (unlikely(!__pyx_t_4)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 79, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_4);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_sub, __pyx_t_4);
+    __pyx_t_4 = 0;
+
+    /* "fastavro/_schema.pyx":80
+ * 
+ *     for sub in schema:
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):             # <<<<<<<<<<<<<<
+ *             right.append(sub)
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):
+ */
+    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_v_sub, __pyx_n_s_float, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 80, __pyx_L1_error)
+    if (!__pyx_t_6) {
+    } else {
+      __pyx_t_5 = __pyx_t_6;
+      goto __pyx_L6_bool_binop_done;
+    }
+    __pyx_t_6 = __Pyx_HasAttr(__pyx_v_sub, __pyx_n_s_get); if (unlikely(__pyx_t_6 == ((int)-1))) __PYX_ERR(0, 80, __pyx_L1_error)
+    __pyx_t_7 = (__pyx_t_6 != 0);
+    if (__pyx_t_7) {
+    } else {
+      __pyx_t_5 = __pyx_t_7;
+      goto __pyx_L6_bool_binop_done;
+    }
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sub, __pyx_n_s_get); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 80, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_9 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_8))) {
+      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
+      if (likely(__pyx_t_9)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_9);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_8, function);
+      }
+    }
+    __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_8, __pyx_t_9, __pyx_n_s_type) : __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_n_s_type);
+    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 80, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_float, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 80, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_5 = __pyx_t_7;
+    __pyx_L6_bool_binop_done:;
+    if (__pyx_t_5) {
+
+      /* "fastavro/_schema.pyx":81
+ *     for sub in schema:
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):
+ *             right.append(sub)             # <<<<<<<<<<<<<<
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):
+ *             left.append(sub)
+ */
+      __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_right, __pyx_v_sub); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 81, __pyx_L1_error)
+
+      /* "fastavro/_schema.pyx":80
+ * 
+ *     for sub in schema:
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):             # <<<<<<<<<<<<<<
+ *             right.append(sub)
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):
+ */
+      goto __pyx_L5;
+    }
+
+    /* "fastavro/_schema.pyx":82
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):
+ *             right.append(sub)
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):             # <<<<<<<<<<<<<<
+ *             left.append(sub)
+ *         else:
+ */
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_sub, __pyx_n_s_double, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 82, __pyx_L1_error)
+    if (!__pyx_t_7) {
+    } else {
+      __pyx_t_5 = __pyx_t_7;
+      goto __pyx_L9_bool_binop_done;
+    }
+    __pyx_t_7 = __Pyx_HasAttr(__pyx_v_sub, __pyx_n_s_get); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 82, __pyx_L1_error)
+    __pyx_t_6 = (__pyx_t_7 != 0);
+    if (__pyx_t_6) {
+    } else {
+      __pyx_t_5 = __pyx_t_6;
+      goto __pyx_L9_bool_binop_done;
+    }
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sub, __pyx_n_s_get); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_9 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_8))) {
+      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
+      if (likely(__pyx_t_9)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_9);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_8, function);
+      }
+    }
+    __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_8, __pyx_t_9, __pyx_n_s_type) : __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_n_s_type);
+    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_double, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_5 = __pyx_t_6;
+    __pyx_L9_bool_binop_done:;
+    if (__pyx_t_5) {
+
+      /* "fastavro/_schema.pyx":83
+ *             right.append(sub)
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):
+ *             left.append(sub)             # <<<<<<<<<<<<<<
+ *         else:
+ *             if len(right) == 0:
+ */
+      __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_left, __pyx_v_sub); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 83, __pyx_L1_error)
+
+      /* "fastavro/_schema.pyx":82
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):
+ *             right.append(sub)
+ *         elif sub == "double" or (hasattr(sub, "get") and sub.get("type") == "double"):             # <<<<<<<<<<<<<<
+ *             left.append(sub)
+ *         else:
+ */
+      goto __pyx_L5;
+    }
+
+    /* "fastavro/_schema.pyx":85
+ *             left.append(sub)
+ *         else:
+ *             if len(right) == 0:             # <<<<<<<<<<<<<<
+ *                 left.append(sub)
+ *             else:
+ */
+    /*else*/ {
+      __pyx_t_11 = PyList_GET_SIZE(__pyx_v_right); if (unlikely(__pyx_t_11 == ((Py_ssize_t)-1))) __PYX_ERR(0, 85, __pyx_L1_error)
+      __pyx_t_5 = ((__pyx_t_11 == 0) != 0);
+      if (__pyx_t_5) {
+
+        /* "fastavro/_schema.pyx":86
+ *         else:
+ *             if len(right) == 0:
+ *                 left.append(sub)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 right.append(sub)
+ */
+        __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_left, __pyx_v_sub); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+
+        /* "fastavro/_schema.pyx":85
+ *             left.append(sub)
+ *         else:
+ *             if len(right) == 0:             # <<<<<<<<<<<<<<
+ *                 left.append(sub)
+ *             else:
+ */
+        goto __pyx_L12;
+      }
+
+      /* "fastavro/_schema.pyx":88
+ *                 left.append(sub)
+ *             else:
+ *                 right.append(sub)             # <<<<<<<<<<<<<<
+ * 
+ *     return left + right
+ */
+      /*else*/ {
+        __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_right, __pyx_v_sub); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 88, __pyx_L1_error)
+      }
+      __pyx_L12:;
+    }
+    __pyx_L5:;
+
+    /* "fastavro/_schema.pyx":79
+ *     right = []
+ * 
+ *     for sub in schema:             # <<<<<<<<<<<<<<
+ *         if sub == "float" or (hasattr(sub, "get") and sub.get("type") == "float"):
+ *             right.append(sub)
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "fastavro/_schema.pyx":90
+ *                 right.append(sub)
+ * 
+ *     return left + right             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyNumber_Add(__pyx_v_left, __pyx_v_right); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "fastavro/_schema.pyx":70
+ * 
+ * 
+ * cdef _reorder_float_unions(schema):             # <<<<<<<<<<<<<<
+ *     """Re-orders union types containing both "float" and "double",
+ *     so that "double" is preferred and no precision is lost when writing
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_AddTraceback("fastavro._schema._reorder_float_unions", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_left);
+  __Pyx_XDECREF(__pyx_v_right);
+  __Pyx_XDECREF(__pyx_v_sub);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "fastavro/_schema.pyx":93
+ * 
+ * 
  * cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):             # <<<<<<<<<<<<<<
  *     # union schemas
  *     if isinstance(schema, list):
@@ -2787,60 +3116,60 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
   __Pyx_INCREF(__pyx_v_schema);
   __Pyx_INCREF(__pyx_v_namespace);
 
-  /* "fastavro/_schema.pyx":72
+  /* "fastavro/_schema.pyx":95
  * cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
  *     # union schemas
  *     if isinstance(schema, list):             # <<<<<<<<<<<<<<
- *         return [
+ *         return _reorder_float_unions([
  *             _parse_schema(
  */
   __pyx_t_1 = PyList_Check(__pyx_v_schema); 
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "fastavro/_schema.pyx":73
+    /* "fastavro/_schema.pyx":96
  *     # union schemas
  *     if isinstance(schema, list):
- *         return [             # <<<<<<<<<<<<<<
+ *         return _reorder_float_unions([             # <<<<<<<<<<<<<<
  *             _parse_schema(
  *                 s, namespace, expand, False, named_schemas
  */
     __Pyx_XDECREF(__pyx_r);
     { /* enter inner scope */
-      __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L6_error)
+      __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L6_error)
       __Pyx_GOTREF(__pyx_t_3);
 
-      /* "fastavro/_schema.pyx":76
+      /* "fastavro/_schema.pyx":99
  *             _parse_schema(
  *                 s, namespace, expand, False, named_schemas
  *             ) for s in schema             # <<<<<<<<<<<<<<
- *         ]
+ *         ])
  * 
  */
       if (likely(PyList_CheckExact(__pyx_v_schema)) || PyTuple_CheckExact(__pyx_v_schema)) {
         __pyx_t_4 = __pyx_v_schema; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
         __pyx_t_6 = NULL;
       } else {
-        __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_schema); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 76, __pyx_L6_error)
+        __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_schema); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L6_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 76, __pyx_L6_error)
+        __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 99, __pyx_L6_error)
       }
       for (;;) {
         if (likely(!__pyx_t_6)) {
           if (likely(PyList_CheckExact(__pyx_t_4))) {
             if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_4)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 76, __pyx_L6_error)
+            __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 99, __pyx_L6_error)
             #else
-            __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 76, __pyx_L6_error)
+            __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 99, __pyx_L6_error)
             __Pyx_GOTREF(__pyx_t_7);
             #endif
           } else {
             if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 76, __pyx_L6_error)
+            __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 99, __pyx_L6_error)
             #else
-            __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 76, __pyx_L6_error)
+            __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 99, __pyx_L6_error)
             __Pyx_GOTREF(__pyx_t_7);
             #endif
           }
@@ -2850,7 +3179,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 76, __pyx_L6_error)
+              else __PYX_ERR(0, 99, __pyx_L6_error)
             }
             break;
           }
@@ -2859,23 +3188,23 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_XDECREF_SET(__pyx_7genexpr__pyx_v_s, __pyx_t_7);
         __pyx_t_7 = 0;
 
-        /* "fastavro/_schema.pyx":74
+        /* "fastavro/_schema.pyx":97
  *     if isinstance(schema, list):
- *         return [
+ *         return _reorder_float_unions([
  *             _parse_schema(             # <<<<<<<<<<<<<<
  *                 s, namespace, expand, False, named_schemas
  *             ) for s in schema
  */
-        __pyx_t_7 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_7genexpr__pyx_v_s, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 74, __pyx_L6_error)
+        __pyx_t_7 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_7genexpr__pyx_v_s, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L6_error)
         __Pyx_GOTREF(__pyx_t_7);
-        if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 73, __pyx_L6_error)
+        if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 96, __pyx_L6_error)
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-        /* "fastavro/_schema.pyx":76
+        /* "fastavro/_schema.pyx":99
  *             _parse_schema(
  *                 s, namespace, expand, False, named_schemas
  *             ) for s in schema             # <<<<<<<<<<<<<<
- *         ]
+ *         ])
  * 
  */
       }
@@ -2887,20 +3216,31 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L1_error;
       __pyx_L9_exit_scope:;
     } /* exit inner scope */
-    __pyx_r = __pyx_t_3;
-    __pyx_t_3 = 0;
+
+    /* "fastavro/_schema.pyx":96
+ *     # union schemas
+ *     if isinstance(schema, list):
+ *         return _reorder_float_unions([             # <<<<<<<<<<<<<<
+ *             _parse_schema(
+ *                 s, namespace, expand, False, named_schemas
+ */
+    __pyx_t_4 = __pyx_f_8fastavro_7_schema__reorder_float_unions(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_r = __pyx_t_4;
+    __pyx_t_4 = 0;
     goto __pyx_L0;
 
-    /* "fastavro/_schema.pyx":72
+    /* "fastavro/_schema.pyx":95
  * cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
  *     # union schemas
  *     if isinstance(schema, list):             # <<<<<<<<<<<<<<
- *         return [
+ *         return _reorder_float_unions([
  *             _parse_schema(
  */
   }
 
-  /* "fastavro/_schema.pyx":80
+  /* "fastavro/_schema.pyx":103
  * 
  *     # string schemas; this could be either a named schema or a primitive type
  *     elif not isinstance(schema, dict):             # <<<<<<<<<<<<<<
@@ -2911,21 +3251,21 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
   __pyx_t_1 = ((!(__pyx_t_2 != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "fastavro/_schema.pyx":81
+    /* "fastavro/_schema.pyx":104
  *     # string schemas; this could be either a named schema or a primitive type
  *     elif not isinstance(schema, dict):
  *         if schema in PRIMITIVES:             # <<<<<<<<<<<<<<
  *             return schema
  * 
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_PRIMITIVES); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 81, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 81, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_PRIMITIVES); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema, __pyx_t_4, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_2 = (__pyx_t_1 != 0);
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":82
+      /* "fastavro/_schema.pyx":105
  *     elif not isinstance(schema, dict):
  *         if schema in PRIMITIVES:
  *             return schema             # <<<<<<<<<<<<<<
@@ -2937,7 +3277,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       __pyx_r = __pyx_v_schema;
       goto __pyx_L0;
 
-      /* "fastavro/_schema.pyx":81
+      /* "fastavro/_schema.pyx":104
  *     # string schemas; this could be either a named schema or a primitive type
  *     elif not isinstance(schema, dict):
  *         if schema in PRIMITIVES:             # <<<<<<<<<<<<<<
@@ -2946,41 +3286,41 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":84
+    /* "fastavro/_schema.pyx":107
  *             return schema
  * 
  *         if '.' not in schema and namespace:             # <<<<<<<<<<<<<<
  *             schema = namespace + '.' + schema
  * 
  */
-    __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_kp_s__4, __pyx_v_schema, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 84, __pyx_L1_error)
+    __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_kp_s__4, __pyx_v_schema, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
     __pyx_t_8 = (__pyx_t_1 != 0);
     if (__pyx_t_8) {
     } else {
       __pyx_t_2 = __pyx_t_8;
       goto __pyx_L12_bool_binop_done;
     }
-    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_namespace); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 84, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_namespace); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
     __pyx_t_2 = __pyx_t_8;
     __pyx_L12_bool_binop_done:;
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":85
+      /* "fastavro/_schema.pyx":108
  * 
  *         if '.' not in schema and namespace:
  *             schema = namespace + '.' + schema             # <<<<<<<<<<<<<<
  * 
  *         if schema not in SCHEMA_DEFS:
  */
-      __pyx_t_3 = PyNumber_Add(__pyx_v_namespace, __pyx_kp_s__4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 85, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = PyNumber_Add(__pyx_t_3, __pyx_v_schema); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __pyx_t_4 = PyNumber_Add(__pyx_v_namespace, __pyx_kp_s__4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 108, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF_SET(__pyx_v_schema, __pyx_t_4);
-      __pyx_t_4 = 0;
+      __pyx_t_3 = PyNumber_Add(__pyx_t_4, __pyx_v_schema); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF_SET(__pyx_v_schema, __pyx_t_3);
+      __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":84
+      /* "fastavro/_schema.pyx":107
  *             return schema
  * 
  *         if '.' not in schema and namespace:             # <<<<<<<<<<<<<<
@@ -2989,49 +3329,49 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":87
+    /* "fastavro/_schema.pyx":110
  *             schema = namespace + '.' + schema
  * 
  *         if schema not in SCHEMA_DEFS:             # <<<<<<<<<<<<<<
  *             raise UnknownType(schema)
  *         elif expand:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema, __pyx_t_4, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 87, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema, __pyx_t_3, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 110, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_8 = (__pyx_t_2 != 0);
     if (unlikely(__pyx_t_8)) {
 
-      /* "fastavro/_schema.pyx":88
+      /* "fastavro/_schema.pyx":111
  * 
  *         if schema not in SCHEMA_DEFS:
  *             raise UnknownType(schema)             # <<<<<<<<<<<<<<
  *         elif expand:
  *             # If `name` is in the schema, it has been fully resolved and so we
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_7 = NULL;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_4);
         if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
           __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __Pyx_DECREF_SET(__pyx_t_4, function);
         }
       }
-      __pyx_t_4 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_7, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_schema);
+      __pyx_t_3 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_7, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_schema);
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 88, __pyx_L1_error)
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 111, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":87
+      /* "fastavro/_schema.pyx":110
  *             schema = namespace + '.' + schema
  * 
  *         if schema not in SCHEMA_DEFS:             # <<<<<<<<<<<<<<
@@ -3040,34 +3380,34 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":89
+    /* "fastavro/_schema.pyx":112
  *         if schema not in SCHEMA_DEFS:
  *             raise UnknownType(schema)
  *         elif expand:             # <<<<<<<<<<<<<<
  *             # If `name` is in the schema, it has been fully resolved and so we
  *             # can include the full schema. If `name` is not in the schema yet,
  */
-    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_expand); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_expand); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 112, __pyx_L1_error)
     if (__pyx_t_8) {
 
-      /* "fastavro/_schema.pyx":95
+      /* "fastavro/_schema.pyx":118
  *             # schema or else we will have infinite recursion when printing the
  *             # final schema
  *             if "name" in SCHEMA_DEFS[schema]:             # <<<<<<<<<<<<<<
  *                 return SCHEMA_DEFS[schema]
  *             else:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 95, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_v_schema); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 95, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 118, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_name, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 95, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_v_schema); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 118, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_name, __pyx_t_4, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 118, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_t_2 = (__pyx_t_8 != 0);
       if (__pyx_t_2) {
 
-        /* "fastavro/_schema.pyx":96
+        /* "fastavro/_schema.pyx":119
  *             # final schema
  *             if "name" in SCHEMA_DEFS[schema]:
  *                 return SCHEMA_DEFS[schema]             # <<<<<<<<<<<<<<
@@ -3075,16 +3415,16 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  *                 return schema
  */
         __Pyx_XDECREF(__pyx_r);
-        __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_v_schema); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_r = __pyx_t_4;
-        __pyx_t_4 = 0;
+        __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_v_schema); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 119, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_r = __pyx_t_3;
+        __pyx_t_3 = 0;
         goto __pyx_L0;
 
-        /* "fastavro/_schema.pyx":95
+        /* "fastavro/_schema.pyx":118
  *             # schema or else we will have infinite recursion when printing the
  *             # final schema
  *             if "name" in SCHEMA_DEFS[schema]:             # <<<<<<<<<<<<<<
@@ -3093,7 +3433,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":98
+      /* "fastavro/_schema.pyx":121
  *                 return SCHEMA_DEFS[schema]
  *             else:
  *                 return schema             # <<<<<<<<<<<<<<
@@ -3107,7 +3447,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         goto __pyx_L0;
       }
 
-      /* "fastavro/_schema.pyx":89
+      /* "fastavro/_schema.pyx":112
  *         if schema not in SCHEMA_DEFS:
  *             raise UnknownType(schema)
  *         elif expand:             # <<<<<<<<<<<<<<
@@ -3116,7 +3456,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":100
+    /* "fastavro/_schema.pyx":123
  *                 return schema
  *         else:
  *             return schema             # <<<<<<<<<<<<<<
@@ -3130,7 +3470,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L0;
     }
 
-    /* "fastavro/_schema.pyx":80
+    /* "fastavro/_schema.pyx":103
  * 
  *     # string schemas; this could be either a named schema or a primitive type
  *     elif not isinstance(schema, dict):             # <<<<<<<<<<<<<<
@@ -3139,7 +3479,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
   }
 
-  /* "fastavro/_schema.pyx":104
+  /* "fastavro/_schema.pyx":127
  *     else:
  *         # Remaining valid schemas must be dict types
  *         schema_type = schema["type"]             # <<<<<<<<<<<<<<
@@ -3147,12 +3487,12 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  *         parsed_schema = {
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_type); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 104, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_v_schema_type = __pyx_t_4;
-    __pyx_t_4 = 0;
+    __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 127, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_v_schema_type = __pyx_t_3;
+    __pyx_t_3 = 0;
 
-    /* "fastavro/_schema.pyx":106
+    /* "fastavro/_schema.pyx":129
  *         schema_type = schema["type"]
  * 
  *         parsed_schema = {             # <<<<<<<<<<<<<<
@@ -3160,17 +3500,17 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  *             for key, value in iteritems(schema)
  */
     { /* enter inner scope */
-      __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 106, __pyx_L18_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L18_error)
+      __Pyx_GOTREF(__pyx_t_3);
 
-      /* "fastavro/_schema.pyx":108
+      /* "fastavro/_schema.pyx":131
  *         parsed_schema = {
  *             key: value
  *             for key, value in iteritems(schema)             # <<<<<<<<<<<<<<
  *             if key not in RESERVED_PROPERTIES
  *         }
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_iteritems); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L18_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_iteritems); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 131, __pyx_L18_error)
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_9 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
@@ -3182,58 +3522,58 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
           __Pyx_DECREF_SET(__pyx_t_7, function);
         }
       }
-      __pyx_t_3 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_9, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_schema);
+      __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_9, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_schema);
       __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L18_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L18_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
-        __pyx_t_7 = __pyx_t_3; __Pyx_INCREF(__pyx_t_7); __pyx_t_5 = 0;
+      if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
+        __pyx_t_7 = __pyx_t_4; __Pyx_INCREF(__pyx_t_7); __pyx_t_5 = 0;
         __pyx_t_6 = NULL;
       } else {
-        __pyx_t_5 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L18_error)
+        __pyx_t_5 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 131, __pyx_L18_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_6 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L18_error)
+        __pyx_t_6 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 131, __pyx_L18_error)
       }
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       for (;;) {
         if (likely(!__pyx_t_6)) {
           if (likely(PyList_CheckExact(__pyx_t_7))) {
             if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_3 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_5); __Pyx_INCREF(__pyx_t_3); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 108, __pyx_L18_error)
+            __pyx_t_4 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_5); __Pyx_INCREF(__pyx_t_4); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 131, __pyx_L18_error)
             #else
-            __pyx_t_3 = PySequence_ITEM(__pyx_t_7, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L18_error)
-            __Pyx_GOTREF(__pyx_t_3);
+            __pyx_t_4 = PySequence_ITEM(__pyx_t_7, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L18_error)
+            __Pyx_GOTREF(__pyx_t_4);
             #endif
           } else {
             if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_5); __Pyx_INCREF(__pyx_t_3); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 108, __pyx_L18_error)
+            __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_5); __Pyx_INCREF(__pyx_t_4); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 131, __pyx_L18_error)
             #else
-            __pyx_t_3 = PySequence_ITEM(__pyx_t_7, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L18_error)
-            __Pyx_GOTREF(__pyx_t_3);
+            __pyx_t_4 = PySequence_ITEM(__pyx_t_7, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L18_error)
+            __Pyx_GOTREF(__pyx_t_4);
             #endif
           }
         } else {
-          __pyx_t_3 = __pyx_t_6(__pyx_t_7);
-          if (unlikely(!__pyx_t_3)) {
+          __pyx_t_4 = __pyx_t_6(__pyx_t_7);
+          if (unlikely(!__pyx_t_4)) {
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 108, __pyx_L18_error)
+              else __PYX_ERR(0, 131, __pyx_L18_error)
             }
             break;
           }
-          __Pyx_GOTREF(__pyx_t_3);
+          __Pyx_GOTREF(__pyx_t_4);
         }
-        if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
-          PyObject* sequence = __pyx_t_3;
+        if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
+          PyObject* sequence = __pyx_t_4;
           Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
           if (unlikely(size != 2)) {
             if (size > 2) __Pyx_RaiseTooManyValuesError(2);
             else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-            __PYX_ERR(0, 108, __pyx_L18_error)
+            __PYX_ERR(0, 131, __pyx_L18_error)
           }
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
           if (likely(PyTuple_CheckExact(sequence))) {
@@ -3246,23 +3586,23 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
           __Pyx_INCREF(__pyx_t_9);
           __Pyx_INCREF(__pyx_t_10);
           #else
-          __pyx_t_9 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 108, __pyx_L18_error)
+          __pyx_t_9 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 131, __pyx_L18_error)
           __Pyx_GOTREF(__pyx_t_9);
-          __pyx_t_10 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 108, __pyx_L18_error)
+          __pyx_t_10 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 131, __pyx_L18_error)
           __Pyx_GOTREF(__pyx_t_10);
           #endif
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         } else {
           Py_ssize_t index = -1;
-          __pyx_t_11 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 108, __pyx_L18_error)
+          __pyx_t_11 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 131, __pyx_L18_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
           __pyx_t_12 = Py_TYPE(__pyx_t_11)->tp_iternext;
           index = 0; __pyx_t_9 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_9)) goto __pyx_L21_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_9);
           index = 1; __pyx_t_10 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_10)) goto __pyx_L21_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_10);
-          if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_11), 2) < 0) __PYX_ERR(0, 108, __pyx_L18_error)
+          if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_11), 2) < 0) __PYX_ERR(0, 131, __pyx_L18_error)
           __pyx_t_12 = NULL;
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
           goto __pyx_L22_unpacking_done;
@@ -3270,7 +3610,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
           __pyx_t_12 = NULL;
           if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-          __PYX_ERR(0, 108, __pyx_L18_error)
+          __PYX_ERR(0, 131, __pyx_L18_error)
           __pyx_L22_unpacking_done:;
         }
         __Pyx_XDECREF_SET(__pyx_8genexpr1__pyx_v_key, __pyx_t_9);
@@ -3278,30 +3618,30 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_XDECREF_SET(__pyx_8genexpr1__pyx_v_value, __pyx_t_10);
         __pyx_t_10 = 0;
 
-        /* "fastavro/_schema.pyx":109
+        /* "fastavro/_schema.pyx":132
  *             key: value
  *             for key, value in iteritems(schema)
  *             if key not in RESERVED_PROPERTIES             # <<<<<<<<<<<<<<
  *         }
  *         parsed_schema["type"] = schema_type
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_RESERVED_PROPERTIES); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L18_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_8genexpr1__pyx_v_key, __pyx_t_3, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 109, __pyx_L18_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_RESERVED_PROPERTIES); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 132, __pyx_L18_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_8genexpr1__pyx_v_key, __pyx_t_4, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 132, __pyx_L18_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __pyx_t_8 = (__pyx_t_2 != 0);
         if (__pyx_t_8) {
 
-          /* "fastavro/_schema.pyx":107
+          /* "fastavro/_schema.pyx":130
  * 
  *         parsed_schema = {
  *             key: value             # <<<<<<<<<<<<<<
  *             for key, value in iteritems(schema)
  *             if key not in RESERVED_PROPERTIES
  */
-          if (unlikely(PyDict_SetItem(__pyx_t_4, (PyObject*)__pyx_8genexpr1__pyx_v_key, (PyObject*)__pyx_8genexpr1__pyx_v_value))) __PYX_ERR(0, 107, __pyx_L18_error)
+          if (unlikely(PyDict_SetItem(__pyx_t_3, (PyObject*)__pyx_8genexpr1__pyx_v_key, (PyObject*)__pyx_8genexpr1__pyx_v_value))) __PYX_ERR(0, 130, __pyx_L18_error)
 
-          /* "fastavro/_schema.pyx":109
+          /* "fastavro/_schema.pyx":132
  *             key: value
  *             for key, value in iteritems(schema)
  *             if key not in RESERVED_PROPERTIES             # <<<<<<<<<<<<<<
@@ -3310,7 +3650,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
         }
 
-        /* "fastavro/_schema.pyx":108
+        /* "fastavro/_schema.pyx":131
  *         parsed_schema = {
  *             key: value
  *             for key, value in iteritems(schema)             # <<<<<<<<<<<<<<
@@ -3328,42 +3668,42 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L1_error;
       __pyx_L24_exit_scope:;
     } /* exit inner scope */
-    __pyx_v_parsed_schema = ((PyObject*)__pyx_t_4);
-    __pyx_t_4 = 0;
+    __pyx_v_parsed_schema = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
 
-    /* "fastavro/_schema.pyx":111
+    /* "fastavro/_schema.pyx":134
  *             if key not in RESERVED_PROPERTIES
  *         }
  *         parsed_schema["type"] = schema_type             # <<<<<<<<<<<<<<
  * 
  *         if "doc" in schema:
  */
-    if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_type, __pyx_v_schema_type) < 0)) __PYX_ERR(0, 111, __pyx_L1_error)
+    if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_type, __pyx_v_schema_type) < 0)) __PYX_ERR(0, 134, __pyx_L1_error)
 
-    /* "fastavro/_schema.pyx":113
+    /* "fastavro/_schema.pyx":136
  *         parsed_schema["type"] = schema_type
  * 
  *         if "doc" in schema:             # <<<<<<<<<<<<<<
  *             parsed_schema["doc"] = schema["doc"]
  * 
  */
-    __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_doc, __pyx_v_schema, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_doc, __pyx_v_schema, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 136, __pyx_L1_error)
     __pyx_t_2 = (__pyx_t_8 != 0);
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":114
+      /* "fastavro/_schema.pyx":137
  * 
  *         if "doc" in schema:
  *             parsed_schema["doc"] = schema["doc"]             # <<<<<<<<<<<<<<
  * 
  *         # Correctness checks for logical types
  */
-      __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_doc); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 114, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_doc, __pyx_t_4) < 0)) __PYX_ERR(0, 114, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_doc); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_doc, __pyx_t_3) < 0)) __PYX_ERR(0, 137, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":113
+      /* "fastavro/_schema.pyx":136
  *         parsed_schema["type"] = schema_type
  * 
  *         if "doc" in schema:             # <<<<<<<<<<<<<<
@@ -3372,48 +3712,48 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":117
+    /* "fastavro/_schema.pyx":140
  * 
  *         # Correctness checks for logical types
  *         logical_type = parsed_schema.get("logicalType")             # <<<<<<<<<<<<<<
  *         if logical_type == "decimal":
  *             scale = parsed_schema.get("scale")
  */
-    __pyx_t_4 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_logicalType, Py_None); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 117, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_v_logical_type = __pyx_t_4;
-    __pyx_t_4 = 0;
+    __pyx_t_3 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_logicalType, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_v_logical_type = __pyx_t_3;
+    __pyx_t_3 = 0;
 
-    /* "fastavro/_schema.pyx":118
+    /* "fastavro/_schema.pyx":141
  *         # Correctness checks for logical types
  *         logical_type = parsed_schema.get("logicalType")
  *         if logical_type == "decimal":             # <<<<<<<<<<<<<<
  *             scale = parsed_schema.get("scale")
  *             if scale and not isinstance(scale, int):
  */
-    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_logical_type, __pyx_n_s_decimal, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 118, __pyx_L1_error)
+    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_logical_type, __pyx_n_s_decimal, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":119
+      /* "fastavro/_schema.pyx":142
  *         logical_type = parsed_schema.get("logicalType")
  *         if logical_type == "decimal":
  *             scale = parsed_schema.get("scale")             # <<<<<<<<<<<<<<
  *             if scale and not isinstance(scale, int):
  *                 raise SchemaParseException(
  */
-      __pyx_t_4 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_scale, Py_None); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_v_scale = __pyx_t_4;
-      __pyx_t_4 = 0;
+      __pyx_t_3 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_scale, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_v_scale = __pyx_t_3;
+      __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":120
+      /* "fastavro/_schema.pyx":143
  *         if logical_type == "decimal":
  *             scale = parsed_schema.get("scale")
  *             if scale and not isinstance(scale, int):             # <<<<<<<<<<<<<<
  *                 raise SchemaParseException(
  *                     "decimal scale must be a postive integer, "
  */
-      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_scale); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 120, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_scale); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 143, __pyx_L1_error)
       if (__pyx_t_8) {
       } else {
         __pyx_t_2 = __pyx_t_8;
@@ -3425,24 +3765,24 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       __pyx_L28_bool_binop_done:;
       if (unlikely(__pyx_t_2)) {
 
-        /* "fastavro/_schema.pyx":121
+        /* "fastavro/_schema.pyx":144
  *             scale = parsed_schema.get("scale")
  *             if scale and not isinstance(scale, int):
  *                 raise SchemaParseException(             # <<<<<<<<<<<<<<
  *                     "decimal scale must be a postive integer, "
  *                     + "not {}".format(scale)
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 121, __pyx_L1_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
 
-        /* "fastavro/_schema.pyx":123
+        /* "fastavro/_schema.pyx":146
  *                 raise SchemaParseException(
  *                     "decimal scale must be a postive integer, "
  *                     + "not {}".format(scale)             # <<<<<<<<<<<<<<
  *                 )
  *             precision = parsed_schema.get("precision")
  */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 123, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 146, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
         __pyx_t_9 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_10))) {
@@ -3454,35 +3794,35 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
             __Pyx_DECREF_SET(__pyx_t_10, function);
           }
         }
-        __pyx_t_3 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_scale) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_scale);
+        __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_scale) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_scale);
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 146, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __pyx_t_10 = PyNumber_Add(__pyx_kp_s_decimal_scale_must_be_a_postive, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 123, __pyx_L1_error)
+        __pyx_t_10 = PyNumber_Add(__pyx_kp_s_decimal_scale_must_be_a_postive, __pyx_t_4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 146, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_3 = NULL;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_4 = NULL;
         if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
-          __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_7);
-          if (likely(__pyx_t_3)) {
+          __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_7);
+          if (likely(__pyx_t_4)) {
             PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-            __Pyx_INCREF(__pyx_t_3);
+            __Pyx_INCREF(__pyx_t_4);
             __Pyx_INCREF(function);
             __Pyx_DECREF_SET(__pyx_t_7, function);
           }
         }
-        __pyx_t_4 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_3, __pyx_t_10) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_10);
-        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_3 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_4, __pyx_t_10) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_10);
+        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 121, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_Raise(__pyx_t_4, 0, 0, 0);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 121, __pyx_L1_error)
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 144, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":120
+        /* "fastavro/_schema.pyx":143
  *         if logical_type == "decimal":
  *             scale = parsed_schema.get("scale")
  *             if scale and not isinstance(scale, int):             # <<<<<<<<<<<<<<
@@ -3491,26 +3831,26 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":125
+      /* "fastavro/_schema.pyx":148
  *                     + "not {}".format(scale)
  *                 )
  *             precision = parsed_schema.get("precision")             # <<<<<<<<<<<<<<
  *             if precision and not isinstance(precision, int):
  *                 raise SchemaParseException(
  */
-      __pyx_t_4 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_precision, Py_None); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 125, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_v_precision = __pyx_t_4;
-      __pyx_t_4 = 0;
+      __pyx_t_3 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_schema, __pyx_n_s_precision, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_v_precision = __pyx_t_3;
+      __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":126
+      /* "fastavro/_schema.pyx":149
  *                 )
  *             precision = parsed_schema.get("precision")
  *             if precision and not isinstance(precision, int):             # <<<<<<<<<<<<<<
  *                 raise SchemaParseException(
  *                     "decimal precision must be a postive integer, "
  */
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_precision); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 126, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_precision); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 149, __pyx_L1_error)
       if (__pyx_t_1) {
       } else {
         __pyx_t_2 = __pyx_t_1;
@@ -3522,42 +3862,42 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       __pyx_L31_bool_binop_done:;
       if (unlikely(__pyx_t_2)) {
 
-        /* "fastavro/_schema.pyx":127
+        /* "fastavro/_schema.pyx":150
  *             precision = parsed_schema.get("precision")
  *             if precision and not isinstance(precision, int):
  *                 raise SchemaParseException(             # <<<<<<<<<<<<<<
  *                     "decimal precision must be a postive integer, "
  *                     + "not {}".format(precision)
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 127, __pyx_L1_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
 
-        /* "fastavro/_schema.pyx":129
+        /* "fastavro/_schema.pyx":152
  *                 raise SchemaParseException(
  *                     "decimal precision must be a postive integer, "
  *                     + "not {}".format(precision)             # <<<<<<<<<<<<<<
  *                 )
  * 
  */
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 152, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __pyx_t_9 = NULL;
-        if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-          __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_3);
+        if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_4);
           if (likely(__pyx_t_9)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
             __Pyx_INCREF(__pyx_t_9);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_3, function);
+            __Pyx_DECREF_SET(__pyx_t_4, function);
           }
         }
-        __pyx_t_10 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_9, __pyx_v_precision) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_precision);
+        __pyx_t_10 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_9, __pyx_v_precision) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_precision);
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 129, __pyx_L1_error)
+        if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_3 = PyNumber_Add(__pyx_kp_s_decimal_precision_must_be_a_post, __pyx_t_10); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_4 = PyNumber_Add(__pyx_kp_s_decimal_precision_must_be_a_post, __pyx_t_10); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 152, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_10 = NULL;
         if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
@@ -3569,17 +3909,17 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
             __Pyx_DECREF_SET(__pyx_t_7, function);
           }
         }
-        __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_10, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_3);
+        __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_10, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_4);
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 127, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_Raise(__pyx_t_4, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 127, __pyx_L1_error)
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 150, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":126
+        /* "fastavro/_schema.pyx":149
  *                 )
  *             precision = parsed_schema.get("precision")
  *             if precision and not isinstance(precision, int):             # <<<<<<<<<<<<<<
@@ -3588,7 +3928,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":118
+      /* "fastavro/_schema.pyx":141
  *         # Correctness checks for logical types
  *         logical_type = parsed_schema.get("logicalType")
  *         if logical_type == "decimal":             # <<<<<<<<<<<<<<
@@ -3597,40 +3937,40 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
     }
 
-    /* "fastavro/_schema.pyx":132
+    /* "fastavro/_schema.pyx":155
  *                 )
  * 
  *         if schema_type == "array":             # <<<<<<<<<<<<<<
  *             parsed_schema["items"] = _parse_schema(
  *                 schema["items"],
  */
-    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_array, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 132, __pyx_L1_error)
+    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_array, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 155, __pyx_L1_error)
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":134
+      /* "fastavro/_schema.pyx":157
  *         if schema_type == "array":
  *             parsed_schema["items"] = _parse_schema(
  *                 schema["items"],             # <<<<<<<<<<<<<<
  *                 namespace,
  *                 expand,
  */
-      __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_items); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 134, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_items); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
 
-      /* "fastavro/_schema.pyx":133
+      /* "fastavro/_schema.pyx":156
  * 
  *         if schema_type == "array":
  *             parsed_schema["items"] = _parse_schema(             # <<<<<<<<<<<<<<
  *                 schema["items"],
  *                 namespace,
  */
-      __pyx_t_7 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_4, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 133, __pyx_L1_error)
+      __pyx_t_7 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_3, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_items, __pyx_t_7) < 0)) __PYX_ERR(0, 133, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_items, __pyx_t_7) < 0)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "fastavro/_schema.pyx":132
+      /* "fastavro/_schema.pyx":155
  *                 )
  * 
  *         if schema_type == "array":             # <<<<<<<<<<<<<<
@@ -3640,40 +3980,40 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":141
+    /* "fastavro/_schema.pyx":164
  *             )
  * 
  *         elif schema_type == "map":             # <<<<<<<<<<<<<<
  *             parsed_schema["values"] = _parse_schema(
  *                 schema["values"],
  */
-    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_map, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_map, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 164, __pyx_L1_error)
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":143
+      /* "fastavro/_schema.pyx":166
  *         elif schema_type == "map":
  *             parsed_schema["values"] = _parse_schema(
  *                 schema["values"],             # <<<<<<<<<<<<<<
  *                 namespace,
  *                 expand,
  */
-      __pyx_t_7 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_values); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_values); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "fastavro/_schema.pyx":142
+      /* "fastavro/_schema.pyx":165
  * 
  *         elif schema_type == "map":
  *             parsed_schema["values"] = _parse_schema(             # <<<<<<<<<<<<<<
  *                 schema["values"],
  *                 namespace,
  */
-      __pyx_t_4 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_7, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 142, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_7, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_values, __pyx_t_4) < 0)) __PYX_ERR(0, 142, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_values, __pyx_t_3) < 0)) __PYX_ERR(0, 165, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":141
+      /* "fastavro/_schema.pyx":164
  *             )
  * 
  *         elif schema_type == "map":             # <<<<<<<<<<<<<<
@@ -3683,61 +4023,61 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":150
+    /* "fastavro/_schema.pyx":173
  *             )
  * 
  *         elif schema_type == "enum":             # <<<<<<<<<<<<<<
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:
  */
-    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_enum, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 150, __pyx_L1_error)
+    __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_enum, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 173, __pyx_L1_error)
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":151
+      /* "fastavro/_schema.pyx":174
  * 
  *         elif schema_type == "enum":
  *             _, fullname = schema_name(schema, namespace)             # <<<<<<<<<<<<<<
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  */
-      __pyx_t_4 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
-        PyObject* sequence = __pyx_t_4;
+      __pyx_t_3 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 174, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
+        PyObject* sequence = __pyx_t_3;
         Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
         if (unlikely(size != 2)) {
           if (size > 2) __Pyx_RaiseTooManyValuesError(2);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 151, __pyx_L1_error)
+          __PYX_ERR(0, 174, __pyx_L1_error)
         }
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
         if (likely(PyTuple_CheckExact(sequence))) {
           __pyx_t_7 = PyTuple_GET_ITEM(sequence, 0); 
-          __pyx_t_3 = PyTuple_GET_ITEM(sequence, 1); 
+          __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
         } else {
           __pyx_t_7 = PyList_GET_ITEM(sequence, 0); 
-          __pyx_t_3 = PyList_GET_ITEM(sequence, 1); 
+          __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
         }
         __Pyx_INCREF(__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
         #else
-        __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 151, __pyx_L1_error)
+        __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 174, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 174, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         #endif
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_10 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 151, __pyx_L1_error)
+        __pyx_t_10 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 174, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_t_12 = Py_TYPE(__pyx_t_10)->tp_iternext;
         index = 0; __pyx_t_7 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_7)) goto __pyx_L34_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_7);
-        index = 1; __pyx_t_3 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_3)) goto __pyx_L34_unpacking_failed;
-        __Pyx_GOTREF(__pyx_t_3);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
+        index = 1; __pyx_t_4 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_4)) goto __pyx_L34_unpacking_failed;
+        __Pyx_GOTREF(__pyx_t_4);
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 174, __pyx_L1_error)
         __pyx_t_12 = NULL;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         goto __pyx_L35_unpacking_done;
@@ -3745,43 +4085,43 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_12 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 151, __pyx_L1_error)
+        __PYX_ERR(0, 174, __pyx_L1_error)
         __pyx_L35_unpacking_done:;
       }
       __pyx_v__ = __pyx_t_7;
       __pyx_t_7 = 0;
-      __pyx_v_fullname = __pyx_t_3;
-      __pyx_t_3 = 0;
+      __pyx_v_fullname = __pyx_t_4;
+      __pyx_t_4 = 0;
 
-      /* "fastavro/_schema.pyx":152
+      /* "fastavro/_schema.pyx":175
  *         elif schema_type == "enum":
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)
  */
-      __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 175, __pyx_L1_error)
       __pyx_t_8 = (__pyx_t_2 != 0);
       if (unlikely(__pyx_t_8)) {
 
-        /* "fastavro/_schema.pyx":153
+        /* "fastavro/_schema.pyx":176
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(             # <<<<<<<<<<<<<<
  *                     "redefined named type: {}".format(fullname)
  *                 )
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 176, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
 
-        /* "fastavro/_schema.pyx":154
+        /* "fastavro/_schema.pyx":177
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)             # <<<<<<<<<<<<<<
  *                 )
  *             named_schemas.add(fullname)
  */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 154, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 177, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
         __pyx_t_9 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_10))) {
@@ -3795,30 +4135,30 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         }
         __pyx_t_7 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_fullname);
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 154, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 177, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_10 = NULL;
-        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-          __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
+        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
           if (likely(__pyx_t_10)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
             __Pyx_INCREF(__pyx_t_10);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_3, function);
+            __Pyx_DECREF_SET(__pyx_t_4, function);
           }
         }
-        __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_10, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_7);
+        __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_10, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_7);
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 153, __pyx_L1_error)
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 176, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":152
+        /* "fastavro/_schema.pyx":175
  *         elif schema_type == "enum":
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
@@ -3827,66 +4167,66 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":156
+      /* "fastavro/_schema.pyx":179
  *                     "redefined named type: {}".format(fullname)
  *                 )
  *             named_schemas.add(fullname)             # <<<<<<<<<<<<<<
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 179, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_7 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_4);
         if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
           __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __Pyx_DECREF_SET(__pyx_t_4, function);
         }
       }
-      __pyx_t_4 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_7, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_fullname);
+      __pyx_t_3 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_7, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_fullname);
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 179, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":158
+      /* "fastavro/_schema.pyx":181
  *             named_schemas.add(fullname)
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema             # <<<<<<<<<<<<<<
  * 
  *             parsed_schema["name"] = fullname
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 158, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyObject_SetItem(__pyx_t_4, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 158, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 181, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyObject_SetItem(__pyx_t_3, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 181, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":160
+      /* "fastavro/_schema.pyx":183
  *             SCHEMA_DEFS[fullname] = parsed_schema
  * 
  *             parsed_schema["name"] = fullname             # <<<<<<<<<<<<<<
  *             parsed_schema["symbols"] = schema["symbols"]
  * 
  */
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 160, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 183, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":161
+      /* "fastavro/_schema.pyx":184
  * 
  *             parsed_schema["name"] = fullname
  *             parsed_schema["symbols"] = schema["symbols"]             # <<<<<<<<<<<<<<
  * 
  *         elif schema_type == "fixed":
  */
-      __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_symbols); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_symbols, __pyx_t_4) < 0)) __PYX_ERR(0, 161, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_symbols); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 184, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_symbols, __pyx_t_3) < 0)) __PYX_ERR(0, 184, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":150
+      /* "fastavro/_schema.pyx":173
  *             )
  * 
  *         elif schema_type == "enum":             # <<<<<<<<<<<<<<
@@ -3896,61 +4236,61 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":163
+    /* "fastavro/_schema.pyx":186
  *             parsed_schema["symbols"] = schema["symbols"]
  * 
  *         elif schema_type == "fixed":             # <<<<<<<<<<<<<<
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:
  */
-    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_fixed, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 163, __pyx_L1_error)
+    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_fixed, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 186, __pyx_L1_error)
     if (__pyx_t_8) {
 
-      /* "fastavro/_schema.pyx":164
+      /* "fastavro/_schema.pyx":187
  * 
  *         elif schema_type == "fixed":
  *             _, fullname = schema_name(schema, namespace)             # <<<<<<<<<<<<<<
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  */
-      __pyx_t_4 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 164, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
-        PyObject* sequence = __pyx_t_4;
+      __pyx_t_3 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 187, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
+        PyObject* sequence = __pyx_t_3;
         Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
         if (unlikely(size != 2)) {
           if (size > 2) __Pyx_RaiseTooManyValuesError(2);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 164, __pyx_L1_error)
+          __PYX_ERR(0, 187, __pyx_L1_error)
         }
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
         if (likely(PyTuple_CheckExact(sequence))) {
-          __pyx_t_3 = PyTuple_GET_ITEM(sequence, 0); 
+          __pyx_t_4 = PyTuple_GET_ITEM(sequence, 0); 
           __pyx_t_7 = PyTuple_GET_ITEM(sequence, 1); 
         } else {
-          __pyx_t_3 = PyList_GET_ITEM(sequence, 0); 
+          __pyx_t_4 = PyList_GET_ITEM(sequence, 0); 
           __pyx_t_7 = PyList_GET_ITEM(sequence, 1); 
         }
-        __Pyx_INCREF(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
         __Pyx_INCREF(__pyx_t_7);
         #else
-        __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 187, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 187, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         #endif
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_10 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_10 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 187, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_t_12 = Py_TYPE(__pyx_t_10)->tp_iternext;
-        index = 0; __pyx_t_3 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_3)) goto __pyx_L37_unpacking_failed;
-        __Pyx_GOTREF(__pyx_t_3);
+        index = 0; __pyx_t_4 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_4)) goto __pyx_L37_unpacking_failed;
+        __Pyx_GOTREF(__pyx_t_4);
         index = 1; __pyx_t_7 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_7)) goto __pyx_L37_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_7);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 187, __pyx_L1_error)
         __pyx_t_12 = NULL;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         goto __pyx_L38_unpacking_done;
@@ -3958,43 +4298,43 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_12 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 164, __pyx_L1_error)
+        __PYX_ERR(0, 187, __pyx_L1_error)
         __pyx_L38_unpacking_done:;
       }
-      __pyx_v__ = __pyx_t_3;
-      __pyx_t_3 = 0;
+      __pyx_v__ = __pyx_t_4;
+      __pyx_t_4 = 0;
       __pyx_v_fullname = __pyx_t_7;
       __pyx_t_7 = 0;
 
-      /* "fastavro/_schema.pyx":165
+      /* "fastavro/_schema.pyx":188
  *         elif schema_type == "fixed":
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)
  */
-      __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 165, __pyx_L1_error)
+      __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 188, __pyx_L1_error)
       __pyx_t_2 = (__pyx_t_8 != 0);
       if (unlikely(__pyx_t_2)) {
 
-        /* "fastavro/_schema.pyx":166
+        /* "fastavro/_schema.pyx":189
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(             # <<<<<<<<<<<<<<
  *                     "redefined named type: {}".format(fullname)
  *                 )
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 189, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
 
-        /* "fastavro/_schema.pyx":167
+        /* "fastavro/_schema.pyx":190
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)             # <<<<<<<<<<<<<<
  *                 )
  *             named_schemas.add(fullname)
  */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 167, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 190, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
         __pyx_t_9 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_10))) {
@@ -4006,10 +4346,10 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
             __Pyx_DECREF_SET(__pyx_t_10, function);
           }
         }
-        __pyx_t_3 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_fullname);
+        __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_fullname);
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 190, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_10 = NULL;
         if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
@@ -4021,17 +4361,17 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
             __Pyx_DECREF_SET(__pyx_t_7, function);
           }
         }
-        __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_10, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_3);
+        __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_10, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_4);
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 166, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_Raise(__pyx_t_4, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 166, __pyx_L1_error)
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 189, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 189, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":165
+        /* "fastavro/_schema.pyx":188
  *         elif schema_type == "fixed":
  *             _, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
@@ -4040,66 +4380,66 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":169
+      /* "fastavro/_schema.pyx":192
  *                     "redefined named type: {}".format(fullname)
  *                 )
  *             named_schemas.add(fullname)             # <<<<<<<<<<<<<<
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 169, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 192, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_3 = NULL;
+      __pyx_t_4 = NULL;
       if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
-        __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_7);
-        if (likely(__pyx_t_3)) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_7);
+        if (likely(__pyx_t_4)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-          __Pyx_INCREF(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_4);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_7, function);
         }
       }
-      __pyx_t_4 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_3, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_fullname);
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 169, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_4, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_fullname);
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 192, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":171
+      /* "fastavro/_schema.pyx":194
  *             named_schemas.add(fullname)
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema             # <<<<<<<<<<<<<<
  * 
  *             parsed_schema["name"] = fullname
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 171, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyObject_SetItem(__pyx_t_4, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 171, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyObject_SetItem(__pyx_t_3, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 194, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":173
+      /* "fastavro/_schema.pyx":196
  *             SCHEMA_DEFS[fullname] = parsed_schema
  * 
  *             parsed_schema["name"] = fullname             # <<<<<<<<<<<<<<
  *             parsed_schema["size"] = schema["size"]
  * 
  */
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 173, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 196, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":174
+      /* "fastavro/_schema.pyx":197
  * 
  *             parsed_schema["name"] = fullname
  *             parsed_schema["size"] = schema["size"]             # <<<<<<<<<<<<<<
  * 
  *         elif schema_type == "record" or schema_type == "error":
  */
-      __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 174, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_size, __pyx_t_4) < 0)) __PYX_ERR(0, 174, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_schema, __pyx_n_s_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_size, __pyx_t_3) < 0)) __PYX_ERR(0, 197, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":163
+      /* "fastavro/_schema.pyx":186
  *             parsed_schema["symbols"] = schema["symbols"]
  * 
  *         elif schema_type == "fixed":             # <<<<<<<<<<<<<<
@@ -4109,69 +4449,69 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":176
+    /* "fastavro/_schema.pyx":199
  *             parsed_schema["size"] = schema["size"]
  * 
  *         elif schema_type == "record" or schema_type == "error":             # <<<<<<<<<<<<<<
  *             # records
  *             namespace, fullname = schema_name(schema, namespace)
  */
-    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_record, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_record, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 199, __pyx_L1_error)
     if (!__pyx_t_8) {
     } else {
       __pyx_t_2 = __pyx_t_8;
       goto __pyx_L40_bool_binop_done;
     }
-    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_error, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_schema_type, __pyx_n_s_error, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 199, __pyx_L1_error)
     __pyx_t_2 = __pyx_t_8;
     __pyx_L40_bool_binop_done:;
     if (__pyx_t_2) {
 
-      /* "fastavro/_schema.pyx":178
+      /* "fastavro/_schema.pyx":201
  *         elif schema_type == "record" or schema_type == "error":
  *             # records
  *             namespace, fullname = schema_name(schema, namespace)             # <<<<<<<<<<<<<<
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  */
-      __pyx_t_4 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 178, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
-        PyObject* sequence = __pyx_t_4;
+      __pyx_t_3 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_namespace, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 201, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
+        PyObject* sequence = __pyx_t_3;
         Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
         if (unlikely(size != 2)) {
           if (size > 2) __Pyx_RaiseTooManyValuesError(2);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 178, __pyx_L1_error)
+          __PYX_ERR(0, 201, __pyx_L1_error)
         }
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
         if (likely(PyTuple_CheckExact(sequence))) {
           __pyx_t_7 = PyTuple_GET_ITEM(sequence, 0); 
-          __pyx_t_3 = PyTuple_GET_ITEM(sequence, 1); 
+          __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
         } else {
           __pyx_t_7 = PyList_GET_ITEM(sequence, 0); 
-          __pyx_t_3 = PyList_GET_ITEM(sequence, 1); 
+          __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
         }
         __Pyx_INCREF(__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
         #else
-        __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 178, __pyx_L1_error)
+        __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 201, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 178, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 201, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
         #endif
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_10 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 178, __pyx_L1_error)
+        __pyx_t_10 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 201, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_t_12 = Py_TYPE(__pyx_t_10)->tp_iternext;
         index = 0; __pyx_t_7 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_7)) goto __pyx_L42_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_7);
-        index = 1; __pyx_t_3 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_3)) goto __pyx_L42_unpacking_failed;
-        __Pyx_GOTREF(__pyx_t_3);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
+        index = 1; __pyx_t_4 = __pyx_t_12(__pyx_t_10); if (unlikely(!__pyx_t_4)) goto __pyx_L42_unpacking_failed;
+        __Pyx_GOTREF(__pyx_t_4);
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_10), 2) < 0) __PYX_ERR(0, 201, __pyx_L1_error)
         __pyx_t_12 = NULL;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         goto __pyx_L43_unpacking_done;
@@ -4179,43 +4519,43 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_12 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 178, __pyx_L1_error)
+        __PYX_ERR(0, 201, __pyx_L1_error)
         __pyx_L43_unpacking_done:;
       }
       __Pyx_DECREF_SET(__pyx_v_namespace, __pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_v_fullname = __pyx_t_3;
-      __pyx_t_3 = 0;
+      __pyx_v_fullname = __pyx_t_4;
+      __pyx_t_4 = 0;
 
-      /* "fastavro/_schema.pyx":179
+      /* "fastavro/_schema.pyx":202
  *             # records
  *             namespace, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)
  */
-      __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 179, __pyx_L1_error)
+      __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_fullname, __pyx_v_named_schemas, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 202, __pyx_L1_error)
       __pyx_t_8 = (__pyx_t_2 != 0);
       if (unlikely(__pyx_t_8)) {
 
-        /* "fastavro/_schema.pyx":180
+        /* "fastavro/_schema.pyx":203
  *             namespace, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(             # <<<<<<<<<<<<<<
  *                     "redefined named type: {}".format(fullname)
  *                 )
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 180, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
 
-        /* "fastavro/_schema.pyx":181
+        /* "fastavro/_schema.pyx":204
  *             if fullname in named_schemas:
  *                 raise SchemaParseException(
  *                     "redefined named type: {}".format(fullname)             # <<<<<<<<<<<<<<
  *                 )
  *             named_schemas.add(fullname)
  */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 181, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_redefined_named_type, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 204, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
         __pyx_t_9 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_10))) {
@@ -4229,30 +4569,30 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         }
         __pyx_t_7 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_9, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_fullname);
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 181, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 204, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __pyx_t_10 = NULL;
-        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-          __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
+        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
           if (likely(__pyx_t_10)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
             __Pyx_INCREF(__pyx_t_10);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_3, function);
+            __Pyx_DECREF_SET(__pyx_t_4, function);
           }
         }
-        __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_10, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_7);
+        __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_10, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_7);
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 180, __pyx_L1_error)
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 203, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":179
+        /* "fastavro/_schema.pyx":202
  *             # records
  *             namespace, fullname = schema_name(schema, namespace)
  *             if fullname in named_schemas:             # <<<<<<<<<<<<<<
@@ -4261,99 +4601,99 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":183
+      /* "fastavro/_schema.pyx":206
  *                     "redefined named type: {}".format(fullname)
  *                 )
  *             named_schemas.add(fullname)             # <<<<<<<<<<<<<<
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 183, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_named_schemas, __pyx_n_s_add); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_7 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_4);
         if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
           __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __Pyx_DECREF_SET(__pyx_t_4, function);
         }
       }
-      __pyx_t_4 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_7, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_fullname);
+      __pyx_t_3 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_7, __pyx_v_fullname) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_fullname);
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 183, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 206, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":185
+      /* "fastavro/_schema.pyx":208
  *             named_schemas.add(fullname)
  * 
  *             SCHEMA_DEFS[fullname] = parsed_schema             # <<<<<<<<<<<<<<
  * 
  *             fields = []
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 185, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyObject_SetItem(__pyx_t_4, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 185, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 208, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(PyObject_SetItem(__pyx_t_3, __pyx_v_fullname, __pyx_v_parsed_schema) < 0)) __PYX_ERR(0, 208, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":187
+      /* "fastavro/_schema.pyx":210
  *             SCHEMA_DEFS[fullname] = parsed_schema
  * 
  *             fields = []             # <<<<<<<<<<<<<<
  *             for field in schema.get('fields', []):
  *                 fields.append(
  */
-      __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 187, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_v_fields = ((PyObject*)__pyx_t_4);
-      __pyx_t_4 = 0;
+      __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 210, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_v_fields = ((PyObject*)__pyx_t_3);
+      __pyx_t_3 = 0;
 
-      /* "fastavro/_schema.pyx":188
+      /* "fastavro/_schema.pyx":211
  * 
  *             fields = []
  *             for field in schema.get('fields', []):             # <<<<<<<<<<<<<<
  *                 fields.append(
  *                     parse_field(field, namespace, expand, named_schemas)
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 188, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_7 = PyList_New(0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 188, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_7 = PyList_New(0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 211, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_10 = NULL;
       __pyx_t_13 = 0;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
         if (likely(__pyx_t_10)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
           __Pyx_INCREF(__pyx_t_10);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __Pyx_DECREF_SET(__pyx_t_4, function);
           __pyx_t_13 = 1;
         }
       }
       #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_3)) {
+      if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_n_s_fields, __pyx_t_7};
-        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_n_s_fields, __pyx_t_7};
-        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       } else
       #endif
       {
-        __pyx_t_9 = PyTuple_New(2+__pyx_t_13); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 188, __pyx_L1_error)
+        __pyx_t_9 = PyTuple_New(2+__pyx_t_13); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 211, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
         if (__pyx_t_10) {
           __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_10); __pyx_t_10 = NULL;
@@ -4364,75 +4704,75 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
         __Pyx_GIVEREF(__pyx_t_7);
         PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_13, __pyx_t_7);
         __pyx_t_7 = 0;
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
-        __pyx_t_3 = __pyx_t_4; __Pyx_INCREF(__pyx_t_3); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
+        __pyx_t_4 = __pyx_t_3; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
         __pyx_t_6 = NULL;
       } else {
-        __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 188, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 188, __pyx_L1_error)
+        __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 211, __pyx_L1_error)
       }
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       for (;;) {
         if (likely(!__pyx_t_6)) {
-          if (likely(PyList_CheckExact(__pyx_t_3))) {
-            if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_3)) break;
+          if (likely(PyList_CheckExact(__pyx_t_4))) {
+            if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_4)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_4 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_4); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 188, __pyx_L1_error)
+            __pyx_t_3 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_3); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 211, __pyx_L1_error)
             #else
-            __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
+            __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_3);
             #endif
           } else {
-            if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+            if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_4); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 188, __pyx_L1_error)
+            __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_3); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 211, __pyx_L1_error)
             #else
-            __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
+            __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_3);
             #endif
           }
         } else {
-          __pyx_t_4 = __pyx_t_6(__pyx_t_3);
-          if (unlikely(!__pyx_t_4)) {
+          __pyx_t_3 = __pyx_t_6(__pyx_t_4);
+          if (unlikely(!__pyx_t_3)) {
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 188, __pyx_L1_error)
+              else __PYX_ERR(0, 211, __pyx_L1_error)
             }
             break;
           }
-          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_GOTREF(__pyx_t_3);
         }
-        __Pyx_XDECREF_SET(__pyx_v_field, __pyx_t_4);
-        __pyx_t_4 = 0;
+        __Pyx_XDECREF_SET(__pyx_v_field, __pyx_t_3);
+        __pyx_t_3 = 0;
 
-        /* "fastavro/_schema.pyx":190
+        /* "fastavro/_schema.pyx":213
  *             for field in schema.get('fields', []):
  *                 fields.append(
  *                     parse_field(field, namespace, expand, named_schemas)             # <<<<<<<<<<<<<<
  *                 )
  * 
  */
-        __pyx_t_4 = __pyx_f_8fastavro_7_schema_parse_field(__pyx_v_field, __pyx_v_namespace, __pyx_v_expand, __pyx_v_named_schemas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 190, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_3 = __pyx_f_8fastavro_7_schema_parse_field(__pyx_v_field, __pyx_v_namespace, __pyx_v_expand, __pyx_v_named_schemas); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
 
-        /* "fastavro/_schema.pyx":189
+        /* "fastavro/_schema.pyx":212
  *             fields = []
  *             for field in schema.get('fields', []):
  *                 fields.append(             # <<<<<<<<<<<<<<
  *                     parse_field(field, namespace, expand, named_schemas)
  *                 )
  */
-        __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_fields, __pyx_t_4); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 189, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_fields, __pyx_t_3); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 212, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "fastavro/_schema.pyx":188
+        /* "fastavro/_schema.pyx":211
  * 
  *             fields = []
  *             for field in schema.get('fields', []):             # <<<<<<<<<<<<<<
@@ -4440,46 +4780,46 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  *                     parse_field(field, namespace, expand, named_schemas)
  */
       }
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "fastavro/_schema.pyx":193
+      /* "fastavro/_schema.pyx":216
  *                 )
  * 
  *             parsed_schema["name"] = fullname             # <<<<<<<<<<<<<<
  *             parsed_schema["fields"] = fields
  * 
  */
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 193, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_name, __pyx_v_fullname) < 0)) __PYX_ERR(0, 216, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":194
+      /* "fastavro/_schema.pyx":217
  * 
  *             parsed_schema["name"] = fullname
  *             parsed_schema["fields"] = fields             # <<<<<<<<<<<<<<
  * 
  *             # Hint that we have parsed the record
  */
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_fields, __pyx_v_fields) < 0)) __PYX_ERR(0, 194, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_fields, __pyx_v_fields) < 0)) __PYX_ERR(0, 217, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":197
+      /* "fastavro/_schema.pyx":220
  * 
  *             # Hint that we have parsed the record
  *             if _write_hint:             # <<<<<<<<<<<<<<
  *                 parsed_schema["__fastavro_parsed"] = True
  * 
  */
-      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v__write_hint); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 197, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v__write_hint); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 220, __pyx_L1_error)
       if (__pyx_t_8) {
 
-        /* "fastavro/_schema.pyx":198
+        /* "fastavro/_schema.pyx":221
  *             # Hint that we have parsed the record
  *             if _write_hint:
  *                 parsed_schema["__fastavro_parsed"] = True             # <<<<<<<<<<<<<<
  * 
  *         elif schema_type in PRIMITIVES:
  */
-        if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_fastavro_parsed, Py_True) < 0)) __PYX_ERR(0, 198, __pyx_L1_error)
+        if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_fastavro_parsed, Py_True) < 0)) __PYX_ERR(0, 221, __pyx_L1_error)
 
-        /* "fastavro/_schema.pyx":197
+        /* "fastavro/_schema.pyx":220
  * 
  *             # Hint that we have parsed the record
  *             if _write_hint:             # <<<<<<<<<<<<<<
@@ -4488,7 +4828,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  */
       }
 
-      /* "fastavro/_schema.pyx":176
+      /* "fastavro/_schema.pyx":199
  *             parsed_schema["size"] = schema["size"]
  * 
  *         elif schema_type == "record" or schema_type == "error":             # <<<<<<<<<<<<<<
@@ -4498,30 +4838,30 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":200
+    /* "fastavro/_schema.pyx":223
  *                 parsed_schema["__fastavro_parsed"] = True
  * 
  *         elif schema_type in PRIMITIVES:             # <<<<<<<<<<<<<<
  *             parsed_schema["type"] = schema_type
  * 
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_PRIMITIVES); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema_type, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 200, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_PRIMITIVES); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_8 = (__Pyx_PySequence_ContainsTF(__pyx_v_schema_type, __pyx_t_4, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_2 = (__pyx_t_8 != 0);
     if (likely(__pyx_t_2)) {
 
-      /* "fastavro/_schema.pyx":201
+      /* "fastavro/_schema.pyx":224
  * 
  *         elif schema_type in PRIMITIVES:
  *             parsed_schema["type"] = schema_type             # <<<<<<<<<<<<<<
  * 
  *         else:
  */
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_type, __pyx_v_schema_type) < 0)) __PYX_ERR(0, 201, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_schema, __pyx_n_s_type, __pyx_v_schema_type) < 0)) __PYX_ERR(0, 224, __pyx_L1_error)
 
-      /* "fastavro/_schema.pyx":200
+      /* "fastavro/_schema.pyx":223
  *                 parsed_schema["__fastavro_parsed"] = True
  * 
  *         elif schema_type in PRIMITIVES:             # <<<<<<<<<<<<<<
@@ -4531,7 +4871,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
       goto __pyx_L33;
     }
 
-    /* "fastavro/_schema.pyx":204
+    /* "fastavro/_schema.pyx":227
  * 
  *         else:
  *             raise UnknownType(schema)             # <<<<<<<<<<<<<<
@@ -4539,30 +4879,30 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
  *         return parsed_schema
  */
     /*else*/ {
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 227, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_9 = NULL;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_4);
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_3);
         if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
           __Pyx_INCREF(__pyx_t_9);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
         }
       }
-      __pyx_t_3 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_9, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_schema);
+      __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_9, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_schema);
       __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_ERR(0, 204, __pyx_L1_error)
+      __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_ERR(0, 227, __pyx_L1_error)
     }
     __pyx_L33:;
 
-    /* "fastavro/_schema.pyx":206
+    /* "fastavro/_schema.pyx":229
  *             raise UnknownType(schema)
  * 
  *         return parsed_schema             # <<<<<<<<<<<<<<
@@ -4575,7 +4915,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.pyx":70
+  /* "fastavro/_schema.pyx":93
  * 
  * 
  * cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):             # <<<<<<<<<<<<<<
@@ -4613,7 +4953,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__parse_schema(PyObject *__pyx_v_sche
   return __pyx_r;
 }
 
-/* "fastavro/_schema.pyx":209
+/* "fastavro/_schema.pyx":232
  * 
  * 
  * cdef parse_field(field, namespace, expand, named_schemas):             # <<<<<<<<<<<<<<
@@ -4643,7 +4983,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   int __pyx_t_11;
   __Pyx_RefNannySetupContext("parse_field", 0);
 
-  /* "fastavro/_schema.pyx":210
+  /* "fastavro/_schema.pyx":233
  * 
  * cdef parse_field(field, namespace, expand, named_schemas):
  *     parsed_field = {             # <<<<<<<<<<<<<<
@@ -4651,17 +4991,17 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
  *         for key, value in iteritems(field)
  */
   { /* enter inner scope */
-    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L5_error)
+    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L5_error)
     __Pyx_GOTREF(__pyx_t_1);
 
-    /* "fastavro/_schema.pyx":212
+    /* "fastavro/_schema.pyx":235
  *     parsed_field = {
  *         key: value
  *         for key, value in iteritems(field)             # <<<<<<<<<<<<<<
  *         if key not in RESERVED_FIELD_PROPERTIES
  *     }
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_iteritems); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L5_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_iteritems); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 235, __pyx_L5_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -4675,16 +5015,16 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
     }
     __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_v_field) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_field);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L5_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L5_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
       __pyx_t_3 = __pyx_t_2; __Pyx_INCREF(__pyx_t_3); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
     } else {
-      __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L5_error)
+      __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 235, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 212, __pyx_L5_error)
+      __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 235, __pyx_L5_error)
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     for (;;) {
@@ -4692,17 +5032,17 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         if (likely(PyList_CheckExact(__pyx_t_3))) {
           if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 212, __pyx_L5_error)
+          __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 235, __pyx_L5_error)
           #else
-          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L5_error)
+          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L5_error)
           __Pyx_GOTREF(__pyx_t_2);
           #endif
         } else {
           if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 212, __pyx_L5_error)
+          __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 235, __pyx_L5_error)
           #else
-          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L5_error)
+          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L5_error)
           __Pyx_GOTREF(__pyx_t_2);
           #endif
         }
@@ -4712,7 +5052,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 212, __pyx_L5_error)
+            else __PYX_ERR(0, 235, __pyx_L5_error)
           }
           break;
         }
@@ -4724,7 +5064,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         if (unlikely(size != 2)) {
           if (size > 2) __Pyx_RaiseTooManyValuesError(2);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 212, __pyx_L5_error)
+          __PYX_ERR(0, 235, __pyx_L5_error)
         }
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
         if (likely(PyTuple_CheckExact(sequence))) {
@@ -4737,15 +5077,15 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         __Pyx_INCREF(__pyx_t_4);
         __Pyx_INCREF(__pyx_t_7);
         #else
-        __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L5_error)
+        __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 235, __pyx_L5_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 212, __pyx_L5_error)
+        __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 235, __pyx_L5_error)
         __Pyx_GOTREF(__pyx_t_7);
         #endif
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_8 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 212, __pyx_L5_error)
+        __pyx_t_8 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 235, __pyx_L5_error)
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __pyx_t_9 = Py_TYPE(__pyx_t_8)->tp_iternext;
@@ -4753,7 +5093,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         __Pyx_GOTREF(__pyx_t_4);
         index = 1; __pyx_t_7 = __pyx_t_9(__pyx_t_8); if (unlikely(!__pyx_t_7)) goto __pyx_L8_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_7);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_8), 2) < 0) __PYX_ERR(0, 212, __pyx_L5_error)
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_8), 2) < 0) __PYX_ERR(0, 235, __pyx_L5_error)
         __pyx_t_9 = NULL;
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         goto __pyx_L9_unpacking_done;
@@ -4761,7 +5101,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         __pyx_t_9 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 212, __pyx_L5_error)
+        __PYX_ERR(0, 235, __pyx_L5_error)
         __pyx_L9_unpacking_done:;
       }
       __Pyx_XDECREF_SET(__pyx_8genexpr2__pyx_v_key, __pyx_t_4);
@@ -4769,30 +5109,30 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
       __Pyx_XDECREF_SET(__pyx_8genexpr2__pyx_v_value, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "fastavro/_schema.pyx":213
+      /* "fastavro/_schema.pyx":236
  *         key: value
  *         for key, value in iteritems(field)
  *         if key not in RESERVED_FIELD_PROPERTIES             # <<<<<<<<<<<<<<
  *     }
  * 
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_RESERVED_FIELD_PROPERTIES); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L5_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_RESERVED_FIELD_PROPERTIES); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_10 = (__Pyx_PySequence_ContainsTF(__pyx_8genexpr2__pyx_v_key, __pyx_t_2, Py_NE)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 213, __pyx_L5_error)
+      __pyx_t_10 = (__Pyx_PySequence_ContainsTF(__pyx_8genexpr2__pyx_v_key, __pyx_t_2, Py_NE)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 236, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_11 = (__pyx_t_10 != 0);
       if (__pyx_t_11) {
 
-        /* "fastavro/_schema.pyx":211
+        /* "fastavro/_schema.pyx":234
  * cdef parse_field(field, namespace, expand, named_schemas):
  *     parsed_field = {
  *         key: value             # <<<<<<<<<<<<<<
  *         for key, value in iteritems(field)
  *         if key not in RESERVED_FIELD_PROPERTIES
  */
-        if (unlikely(PyDict_SetItem(__pyx_t_1, (PyObject*)__pyx_8genexpr2__pyx_v_key, (PyObject*)__pyx_8genexpr2__pyx_v_value))) __PYX_ERR(0, 211, __pyx_L5_error)
+        if (unlikely(PyDict_SetItem(__pyx_t_1, (PyObject*)__pyx_8genexpr2__pyx_v_key, (PyObject*)__pyx_8genexpr2__pyx_v_value))) __PYX_ERR(0, 234, __pyx_L5_error)
 
-        /* "fastavro/_schema.pyx":213
+        /* "fastavro/_schema.pyx":236
  *         key: value
  *         for key, value in iteritems(field)
  *         if key not in RESERVED_FIELD_PROPERTIES             # <<<<<<<<<<<<<<
@@ -4801,7 +5141,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
  */
       }
 
-      /* "fastavro/_schema.pyx":212
+      /* "fastavro/_schema.pyx":235
  *     parsed_field = {
  *         key: value
  *         for key, value in iteritems(field)             # <<<<<<<<<<<<<<
@@ -4822,22 +5162,22 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   __pyx_v_parsed_field = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "fastavro/_schema.pyx":216
+  /* "fastavro/_schema.pyx":239
  *     }
  * 
  *     for prop in OPTIONAL_FIELD_PROPERTIES:             # <<<<<<<<<<<<<<
  *         if prop in field:
  *             parsed_field[prop] = field[prop]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_OPTIONAL_FIELD_PROPERTIES); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_OPTIONAL_FIELD_PROPERTIES); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 239, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_3 = __pyx_t_1; __Pyx_INCREF(__pyx_t_3); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
   } else {
-    __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
+    __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 239, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 216, __pyx_L1_error)
+    __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 239, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -4845,17 +5185,17 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 239, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 239, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 239, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 239, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -4865,7 +5205,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 216, __pyx_L1_error)
+          else __PYX_ERR(0, 239, __pyx_L1_error)
         }
         break;
       }
@@ -4874,30 +5214,30 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
     __Pyx_XDECREF_SET(__pyx_v_prop, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "fastavro/_schema.pyx":217
+    /* "fastavro/_schema.pyx":240
  * 
  *     for prop in OPTIONAL_FIELD_PROPERTIES:
  *         if prop in field:             # <<<<<<<<<<<<<<
  *             parsed_field[prop] = field[prop]
  * 
  */
-    __pyx_t_11 = (__Pyx_PySequence_ContainsTF(__pyx_v_prop, __pyx_v_field, Py_EQ)); if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_11 = (__Pyx_PySequence_ContainsTF(__pyx_v_prop, __pyx_v_field, Py_EQ)); if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 240, __pyx_L1_error)
     __pyx_t_10 = (__pyx_t_11 != 0);
     if (__pyx_t_10) {
 
-      /* "fastavro/_schema.pyx":218
+      /* "fastavro/_schema.pyx":241
  *     for prop in OPTIONAL_FIELD_PROPERTIES:
  *         if prop in field:
  *             parsed_field[prop] = field[prop]             # <<<<<<<<<<<<<<
  * 
  *     # Aliases must be a list
  */
-      __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_field, __pyx_v_prop); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_field, __pyx_v_prop); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_v_prop, __pyx_t_1) < 0)) __PYX_ERR(0, 218, __pyx_L1_error)
+      if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_v_prop, __pyx_t_1) < 0)) __PYX_ERR(0, 241, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "fastavro/_schema.pyx":217
+      /* "fastavro/_schema.pyx":240
  * 
  *     for prop in OPTIONAL_FIELD_PROPERTIES:
  *         if prop in field:             # <<<<<<<<<<<<<<
@@ -4906,7 +5246,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
  */
     }
 
-    /* "fastavro/_schema.pyx":216
+    /* "fastavro/_schema.pyx":239
  *     }
  * 
  *     for prop in OPTIONAL_FIELD_PROPERTIES:             # <<<<<<<<<<<<<<
@@ -4916,22 +5256,22 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "fastavro/_schema.pyx":221
+  /* "fastavro/_schema.pyx":244
  * 
  *     # Aliases must be a list
  *     aliases = parsed_field.get("aliases", [])             # <<<<<<<<<<<<<<
  *     if not isinstance(aliases, list):
  *         msg = "aliases must be a list, not {}".format(aliases)
  */
-  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_field, __pyx_n_s_aliases, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_GetItemDefault(__pyx_v_parsed_field, __pyx_n_s_aliases, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_aliases = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "fastavro/_schema.pyx":222
+  /* "fastavro/_schema.pyx":245
  *     # Aliases must be a list
  *     aliases = parsed_field.get("aliases", [])
  *     if not isinstance(aliases, list):             # <<<<<<<<<<<<<<
@@ -4942,14 +5282,14 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   __pyx_t_11 = ((!(__pyx_t_10 != 0)) != 0);
   if (unlikely(__pyx_t_11)) {
 
-    /* "fastavro/_schema.pyx":223
+    /* "fastavro/_schema.pyx":246
  *     aliases = parsed_field.get("aliases", [])
  *     if not isinstance(aliases, list):
  *         msg = "aliases must be a list, not {}".format(aliases)             # <<<<<<<<<<<<<<
  *         raise SchemaParseException(msg)
  * 
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_aliases_must_be_a_list_not, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_aliases_must_be_a_list_not, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 246, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_2 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -4963,20 +5303,20 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
     }
     __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_aliases) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_aliases);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_msg = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "fastavro/_schema.pyx":224
+    /* "fastavro/_schema.pyx":247
  *     if not isinstance(aliases, list):
  *         msg = "aliases must be a list, not {}".format(aliases)
  *         raise SchemaParseException(msg)             # <<<<<<<<<<<<<<
  * 
  *     parsed_field["name"] = field["name"]
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 224, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SchemaParseException); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_2 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -4990,14 +5330,14 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
     }
     __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_msg);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 224, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 224, __pyx_L1_error)
+    __PYX_ERR(0, 247, __pyx_L1_error)
 
-    /* "fastavro/_schema.pyx":222
+    /* "fastavro/_schema.pyx":245
  *     # Aliases must be a list
  *     aliases = parsed_field.get("aliases", [])
  *     if not isinstance(aliases, list):             # <<<<<<<<<<<<<<
@@ -5006,42 +5346,42 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
  */
   }
 
-  /* "fastavro/_schema.pyx":226
+  /* "fastavro/_schema.pyx":249
  *         raise SchemaParseException(msg)
  * 
  *     parsed_field["name"] = field["name"]             # <<<<<<<<<<<<<<
  *     parsed_field["type"] = _parse_schema(
  *         field["type"], namespace, expand, False, named_schemas
  */
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_field, __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_field, __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_n_s_name, __pyx_t_1) < 0)) __PYX_ERR(0, 226, __pyx_L1_error)
+  if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_n_s_name, __pyx_t_1) < 0)) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fastavro/_schema.pyx":228
+  /* "fastavro/_schema.pyx":251
  *     parsed_field["name"] = field["name"]
  *     parsed_field["type"] = _parse_schema(
  *         field["type"], namespace, expand, False, named_schemas             # <<<<<<<<<<<<<<
  *     )
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_field, __pyx_n_s_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_field, __pyx_n_s_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 251, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "fastavro/_schema.pyx":227
+  /* "fastavro/_schema.pyx":250
  * 
  *     parsed_field["name"] = field["name"]
  *     parsed_field["type"] = _parse_schema(             # <<<<<<<<<<<<<<
  *         field["type"], namespace, expand, False, named_schemas
  *     )
  */
-  __pyx_t_3 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_1, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_8fastavro_7_schema__parse_schema(__pyx_t_1, __pyx_v_namespace, __pyx_v_expand, Py_False, __pyx_v_named_schemas); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_n_s_type, __pyx_t_3) < 0)) __PYX_ERR(0, 227, __pyx_L1_error)
+  if (unlikely(PyDict_SetItem(__pyx_v_parsed_field, __pyx_n_s_type, __pyx_t_3) < 0)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "fastavro/_schema.pyx":231
+  /* "fastavro/_schema.pyx":254
  *     )
  * 
  *     return parsed_field             # <<<<<<<<<<<<<<
@@ -5053,7 +5393,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   __pyx_r = __pyx_v_parsed_field;
   goto __pyx_L0;
 
-  /* "fastavro/_schema.pyx":209
+  /* "fastavro/_schema.pyx":232
  * 
  * 
  * cdef parse_field(field, namespace, expand, named_schemas):             # <<<<<<<<<<<<<<
@@ -5083,7 +5423,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_parse_field(PyObject *__pyx_v_field,
   return __pyx_r;
 }
 
-/* "fastavro/_schema.pyx":234
+/* "fastavro/_schema.pyx":257
  * 
  * 
  * def load_schema(schema_path):             # <<<<<<<<<<<<<<
@@ -5127,7 +5467,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
   PyObject *(*__pyx_t_12)(PyObject *);
   __Pyx_RefNannySetupContext("load_schema", 0);
 
-  /* "fastavro/_schema.pyx":242
+  /* "fastavro/_schema.pyx":265
  *     `<type_name>.avsc`.
  *     '''
  *     with open(schema_path) as fd:             # <<<<<<<<<<<<<<
@@ -5135,11 +5475,11 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
  *     schema_dir, schema_file = path.split(schema_path)
  */
   /*with:*/ {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_open, __pyx_v_schema_path); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_open, __pyx_v_schema_path); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 265, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_LookupSpecial(__pyx_t_1, __pyx_n_s_exit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_LookupSpecial(__pyx_t_1, __pyx_n_s_exit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 265, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_LookupSpecial(__pyx_t_1, __pyx_n_s_enter); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L3_error)
+    __pyx_t_4 = __Pyx_PyObject_LookupSpecial(__pyx_t_1, __pyx_n_s_enter); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 265, __pyx_L3_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -5153,7 +5493,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     }
     __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_4);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 242, __pyx_L3_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 265, __pyx_L3_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_4 = __pyx_t_3;
@@ -5171,16 +5511,16 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
           __pyx_v_fd = __pyx_t_4;
           __pyx_t_4 = 0;
 
-          /* "fastavro/_schema.pyx":243
+          /* "fastavro/_schema.pyx":266
  *     '''
  *     with open(schema_path) as fd:
  *         schema = json.load(fd)             # <<<<<<<<<<<<<<
  *     schema_dir, schema_file = path.split(schema_path)
  *     return _load_schema(schema, schema_dir)
  */
-          __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_json); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L7_error)
+          __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_json); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 266, __pyx_L7_error)
           __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_load); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L7_error)
+          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_load); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 266, __pyx_L7_error)
           __Pyx_GOTREF(__pyx_t_3);
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           __pyx_t_1 = NULL;
@@ -5195,13 +5535,13 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
           }
           __pyx_t_4 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_v_fd) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_fd);
           __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L7_error)
+          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 266, __pyx_L7_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __pyx_v_schema = __pyx_t_4;
           __pyx_t_4 = 0;
 
-          /* "fastavro/_schema.pyx":242
+          /* "fastavro/_schema.pyx":265
  *     `<type_name>.avsc`.
  *     '''
  *     with open(schema_path) as fd:             # <<<<<<<<<<<<<<
@@ -5220,20 +5560,20 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         /*except:*/ {
           __Pyx_AddTraceback("fastavro._schema.load_schema", __pyx_clineno, __pyx_lineno, __pyx_filename);
-          if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_3, &__pyx_t_1) < 0) __PYX_ERR(0, 242, __pyx_L9_except_error)
+          if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_3, &__pyx_t_1) < 0) __PYX_ERR(0, 265, __pyx_L9_except_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_GOTREF(__pyx_t_3);
           __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_5 = PyTuple_Pack(3, __pyx_t_4, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 242, __pyx_L9_except_error)
+          __pyx_t_5 = PyTuple_Pack(3, __pyx_t_4, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 265, __pyx_L9_except_error)
           __Pyx_GOTREF(__pyx_t_5);
           __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL);
           __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-          if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 242, __pyx_L9_except_error)
+          if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 265, __pyx_L9_except_error)
           __Pyx_GOTREF(__pyx_t_9);
           __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_9);
           __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          if (__pyx_t_10 < 0) __PYX_ERR(0, 242, __pyx_L9_except_error)
+          if (__pyx_t_10 < 0) __PYX_ERR(0, 265, __pyx_L9_except_error)
           __pyx_t_11 = ((!(__pyx_t_10 != 0)) != 0);
           if (__pyx_t_11) {
             __Pyx_GIVEREF(__pyx_t_4);
@@ -5241,7 +5581,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
             __Pyx_XGIVEREF(__pyx_t_1);
             __Pyx_ErrRestoreWithState(__pyx_t_4, __pyx_t_3, __pyx_t_1);
             __pyx_t_4 = 0; __pyx_t_3 = 0; __pyx_t_1 = 0; 
-            __PYX_ERR(0, 242, __pyx_L9_except_error)
+            __PYX_ERR(0, 265, __pyx_L9_except_error)
           }
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -5267,7 +5607,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
         if (__pyx_t_2) {
           __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__5, NULL);
           __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 242, __pyx_L1_error)
+          if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 265, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         }
@@ -5282,16 +5622,16 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     __pyx_L16:;
   }
 
-  /* "fastavro/_schema.pyx":244
+  /* "fastavro/_schema.pyx":267
  *     with open(schema_path) as fd:
  *         schema = json.load(fd)
  *     schema_dir, schema_file = path.split(schema_path)             # <<<<<<<<<<<<<<
  *     return _load_schema(schema, schema_dir)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 267, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -5306,7 +5646,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_3, __pyx_v_schema_path) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_schema_path);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 267, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
@@ -5315,7 +5655,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 244, __pyx_L1_error)
+      __PYX_ERR(0, 267, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -5328,15 +5668,15 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     __Pyx_INCREF(__pyx_t_4);
     __Pyx_INCREF(__pyx_t_3);
     #else
-    __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 267, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 267, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_12 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -5344,7 +5684,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     __Pyx_GOTREF(__pyx_t_4);
     index = 1; __pyx_t_3 = __pyx_t_12(__pyx_t_5); if (unlikely(!__pyx_t_3)) goto __pyx_L17_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_3);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_5), 2) < 0) __PYX_ERR(0, 244, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_5), 2) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
     __pyx_t_12 = NULL;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L18_unpacking_done;
@@ -5352,7 +5692,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_12 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 244, __pyx_L1_error)
+    __PYX_ERR(0, 267, __pyx_L1_error)
     __pyx_L18_unpacking_done:;
   }
   __pyx_v_schema_dir = __pyx_t_4;
@@ -5360,7 +5700,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
   __pyx_v_schema_file = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "fastavro/_schema.pyx":245
+  /* "fastavro/_schema.pyx":268
  *         schema = json.load(fd)
  *     schema_dir, schema_file = path.split(schema_path)
  *     return _load_schema(schema, schema_dir)             # <<<<<<<<<<<<<<
@@ -5368,14 +5708,14 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_schema)) { __Pyx_RaiseUnboundLocalError("schema"); __PYX_ERR(0, 245, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_v_schema, __pyx_v_schema_dir); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
+  if (unlikely(!__pyx_v_schema)) { __Pyx_RaiseUnboundLocalError("schema"); __PYX_ERR(0, 268, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_v_schema, __pyx_v_schema_dir); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_schema.pyx":234
+  /* "fastavro/_schema.pyx":257
  * 
  * 
  * def load_schema(schema_path):             # <<<<<<<<<<<<<<
@@ -5401,7 +5741,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_12load_schema(CYTHON_UNUSED PyObjec
   return __pyx_r;
 }
 
-/* "fastavro/_schema.pyx":248
+/* "fastavro/_schema.pyx":271
  * 
  * 
  * cdef _load_schema(schema, schema_dir):             # <<<<<<<<<<<<<<
@@ -5439,7 +5779,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
   PyObject *__pyx_t_22 = NULL;
   __Pyx_RefNannySetupContext("_load_schema", 0);
 
-  /* "fastavro/_schema.pyx":249
+  /* "fastavro/_schema.pyx":272
  * 
  * cdef _load_schema(schema, schema_dir):
  *     try:             # <<<<<<<<<<<<<<
@@ -5455,7 +5795,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "fastavro/_schema.pyx":250
+      /* "fastavro/_schema.pyx":273
  * cdef _load_schema(schema, schema_dir):
  *     try:
  *         return parse_schema(schema)             # <<<<<<<<<<<<<<
@@ -5463,7 +5803,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
  *         try:
  */
       __Pyx_XDECREF(__pyx_r);
-      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_parse_schema); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 250, __pyx_L3_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_parse_schema); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 273, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_6 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -5477,14 +5817,14 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
       }
       __pyx_t_4 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_6, __pyx_v_schema) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_schema);
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 250, __pyx_L3_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_r = __pyx_t_4;
       __pyx_t_4 = 0;
       goto __pyx_L7_try_return;
 
-      /* "fastavro/_schema.pyx":249
+      /* "fastavro/_schema.pyx":272
  * 
  * cdef _load_schema(schema, schema_dir):
  *     try:             # <<<<<<<<<<<<<<
@@ -5497,7 +5837,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-    /* "fastavro/_schema.pyx":251
+    /* "fastavro/_schema.pyx":274
  *     try:
  *         return parse_schema(schema)
  *     except UnknownType as e:             # <<<<<<<<<<<<<<
@@ -5505,7 +5845,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
  *             avsc = path.join(schema_dir, '%s.avsc' % e.name)
  */
     __Pyx_ErrFetch(&__pyx_t_4, &__pyx_t_5, &__pyx_t_6);
-    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 251, __pyx_L5_except_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_UnknownType); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 274, __pyx_L5_except_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_8 = __Pyx_PyErr_GivenExceptionMatches(__pyx_t_4, __pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -5513,7 +5853,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
     __pyx_t_4 = 0; __pyx_t_5 = 0; __pyx_t_6 = 0;
     if (__pyx_t_8) {
       __Pyx_AddTraceback("fastavro._schema._load_schema", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_6, &__pyx_t_5, &__pyx_t_4) < 0) __PYX_ERR(0, 251, __pyx_L5_except_error)
+      if (__Pyx_GetException(&__pyx_t_6, &__pyx_t_5, &__pyx_t_4) < 0) __PYX_ERR(0, 274, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GOTREF(__pyx_t_4);
@@ -5521,7 +5861,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
       __pyx_v_e = __pyx_t_5;
       /*try:*/ {
 
-        /* "fastavro/_schema.pyx":252
+        /* "fastavro/_schema.pyx":275
  *         return parse_schema(schema)
  *     except UnknownType as e:
  *         try:             # <<<<<<<<<<<<<<
@@ -5537,21 +5877,21 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __Pyx_XGOTREF(__pyx_t_11);
           /*try:*/ {
 
-            /* "fastavro/_schema.pyx":253
+            /* "fastavro/_schema.pyx":276
  *     except UnknownType as e:
  *         try:
  *             avsc = path.join(schema_dir, '%s.avsc' % e.name)             # <<<<<<<<<<<<<<
  *             sub_schema = load_schema(avsc)
  *         except IOError:
  */
-            __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_path); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 253, __pyx_L16_error)
+            __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_path); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 276, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_12);
-            __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_join); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 253, __pyx_L16_error)
+            __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_join); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 276, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_13);
             __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-            __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_name); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 253, __pyx_L16_error)
+            __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_name); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 276, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_12);
-            __pyx_t_14 = __Pyx_PyString_FormatSafe(__pyx_kp_s_s_avsc, __pyx_t_12); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 253, __pyx_L16_error)
+            __pyx_t_14 = __Pyx_PyString_FormatSafe(__pyx_kp_s_s_avsc, __pyx_t_12); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 276, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_14);
             __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
             __pyx_t_12 = NULL;
@@ -5569,7 +5909,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
             #if CYTHON_FAST_PYCALL
             if (PyFunction_Check(__pyx_t_13)) {
               PyObject *__pyx_temp[3] = {__pyx_t_12, __pyx_v_schema_dir, __pyx_t_14};
-              __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_13, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 253, __pyx_L16_error)
+              __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_13, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 276, __pyx_L16_error)
               __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
               __Pyx_GOTREF(__pyx_t_7);
               __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -5578,14 +5918,14 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
             #if CYTHON_FAST_PYCCALL
             if (__Pyx_PyFastCFunction_Check(__pyx_t_13)) {
               PyObject *__pyx_temp[3] = {__pyx_t_12, __pyx_v_schema_dir, __pyx_t_14};
-              __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_13, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 253, __pyx_L16_error)
+              __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_13, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 276, __pyx_L16_error)
               __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
               __Pyx_GOTREF(__pyx_t_7);
               __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
             } else
             #endif
             {
-              __pyx_t_15 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 253, __pyx_L16_error)
+              __pyx_t_15 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 276, __pyx_L16_error)
               __Pyx_GOTREF(__pyx_t_15);
               if (__pyx_t_12) {
                 __Pyx_GIVEREF(__pyx_t_12); PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_12); __pyx_t_12 = NULL;
@@ -5596,7 +5936,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
               __Pyx_GIVEREF(__pyx_t_14);
               PyTuple_SET_ITEM(__pyx_t_15, 1+__pyx_t_8, __pyx_t_14);
               __pyx_t_14 = 0;
-              __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_13, __pyx_t_15, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 253, __pyx_L16_error)
+              __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_13, __pyx_t_15, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 276, __pyx_L16_error)
               __Pyx_GOTREF(__pyx_t_7);
               __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
             }
@@ -5604,14 +5944,14 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
             __pyx_v_avsc = __pyx_t_7;
             __pyx_t_7 = 0;
 
-            /* "fastavro/_schema.pyx":254
+            /* "fastavro/_schema.pyx":277
  *         try:
  *             avsc = path.join(schema_dir, '%s.avsc' % e.name)
  *             sub_schema = load_schema(avsc)             # <<<<<<<<<<<<<<
  *         except IOError:
  *             raise e
  */
-            __Pyx_GetModuleGlobalName(__pyx_t_13, __pyx_n_s_load_schema); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 254, __pyx_L16_error)
+            __Pyx_GetModuleGlobalName(__pyx_t_13, __pyx_n_s_load_schema); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 277, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_13);
             __pyx_t_15 = NULL;
             if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_13))) {
@@ -5625,13 +5965,13 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
             }
             __pyx_t_7 = (__pyx_t_15) ? __Pyx_PyObject_Call2Args(__pyx_t_13, __pyx_t_15, __pyx_v_avsc) : __Pyx_PyObject_CallOneArg(__pyx_t_13, __pyx_v_avsc);
             __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
-            if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 254, __pyx_L16_error)
+            if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 277, __pyx_L16_error)
             __Pyx_GOTREF(__pyx_t_7);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
             __pyx_v_sub_schema = __pyx_t_7;
             __pyx_t_7 = 0;
 
-            /* "fastavro/_schema.pyx":252
+            /* "fastavro/_schema.pyx":275
  *         return parse_schema(schema)
  *     except UnknownType as e:
  *         try:             # <<<<<<<<<<<<<<
@@ -5650,7 +5990,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
           __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-          /* "fastavro/_schema.pyx":255
+          /* "fastavro/_schema.pyx":278
  *             avsc = path.join(schema_dir, '%s.avsc' % e.name)
  *             sub_schema = load_schema(avsc)
  *         except IOError:             # <<<<<<<<<<<<<<
@@ -5660,12 +6000,12 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __pyx_t_8 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_IOError);
           if (__pyx_t_8) {
             __Pyx_AddTraceback("fastavro._schema._load_schema", __pyx_clineno, __pyx_lineno, __pyx_filename);
-            if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_13, &__pyx_t_15) < 0) __PYX_ERR(0, 255, __pyx_L18_except_error)
+            if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_13, &__pyx_t_15) < 0) __PYX_ERR(0, 278, __pyx_L18_except_error)
             __Pyx_GOTREF(__pyx_t_7);
             __Pyx_GOTREF(__pyx_t_13);
             __Pyx_GOTREF(__pyx_t_15);
 
-            /* "fastavro/_schema.pyx":256
+            /* "fastavro/_schema.pyx":279
  *             sub_schema = load_schema(avsc)
  *         except IOError:
  *             raise e             # <<<<<<<<<<<<<<
@@ -5673,12 +6013,12 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
  *         if isinstance(schema, dict):
  */
             __Pyx_Raise(__pyx_v_e, 0, 0, 0);
-            __PYX_ERR(0, 256, __pyx_L18_except_error)
+            __PYX_ERR(0, 279, __pyx_L18_except_error)
           }
           goto __pyx_L18_except_error;
           __pyx_L18_except_error:;
 
-          /* "fastavro/_schema.pyx":252
+          /* "fastavro/_schema.pyx":275
  *         return parse_schema(schema)
  *     except UnknownType as e:
  *         try:             # <<<<<<<<<<<<<<
@@ -5693,7 +6033,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __pyx_L23_try_end:;
         }
 
-        /* "fastavro/_schema.pyx":258
+        /* "fastavro/_schema.pyx":281
  *             raise e
  * 
  *         if isinstance(schema, dict):             # <<<<<<<<<<<<<<
@@ -5704,7 +6044,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
         __pyx_t_17 = (__pyx_t_16 != 0);
         if (__pyx_t_17) {
 
-          /* "fastavro/_schema.pyx":259
+          /* "fastavro/_schema.pyx":282
  * 
  *         if isinstance(schema, dict):
  *             return _load_schema([sub_schema, schema], schema_dir)             # <<<<<<<<<<<<<<
@@ -5712,7 +6052,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
  *             # schema is already a list
  */
           __Pyx_XDECREF(__pyx_r);
-          __pyx_t_15 = PyList_New(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 259, __pyx_L14_error)
+          __pyx_t_15 = PyList_New(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 282, __pyx_L14_error)
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_INCREF(__pyx_v_sub_schema);
           __Pyx_GIVEREF(__pyx_v_sub_schema);
@@ -5720,7 +6060,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __Pyx_INCREF(__pyx_v_schema);
           __Pyx_GIVEREF(__pyx_v_schema);
           PyList_SET_ITEM(__pyx_t_15, 1, __pyx_v_schema);
-          __pyx_t_13 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_t_15, __pyx_v_schema_dir); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 259, __pyx_L14_error)
+          __pyx_t_13 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_t_15, __pyx_v_schema_dir); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 282, __pyx_L14_error)
           __Pyx_GOTREF(__pyx_t_13);
           __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
           __pyx_r = __pyx_t_13;
@@ -5730,7 +6070,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           goto __pyx_L13_return;
 
-          /* "fastavro/_schema.pyx":258
+          /* "fastavro/_schema.pyx":281
  *             raise e
  * 
  *         if isinstance(schema, dict):             # <<<<<<<<<<<<<<
@@ -5739,14 +6079,14 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
  */
         }
 
-        /* "fastavro/_schema.pyx":262
+        /* "fastavro/_schema.pyx":285
  *         else:
  *             # schema is already a list
  *             schema.insert(0, sub_schema)             # <<<<<<<<<<<<<<
  *             return _load_schema(schema, schema_dir)
  */
         /*else*/ {
-          __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_insert); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 262, __pyx_L14_error)
+          __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_insert); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 285, __pyx_L14_error)
           __Pyx_GOTREF(__pyx_t_15);
           __pyx_t_7 = NULL;
           __pyx_t_8 = 0;
@@ -5763,7 +6103,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_15)) {
             PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_int_0, __pyx_v_sub_schema};
-            __pyx_t_13 = __Pyx_PyFunction_FastCall(__pyx_t_15, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 262, __pyx_L14_error)
+            __pyx_t_13 = __Pyx_PyFunction_FastCall(__pyx_t_15, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 285, __pyx_L14_error)
             __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
             __Pyx_GOTREF(__pyx_t_13);
           } else
@@ -5771,13 +6111,13 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_15)) {
             PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_int_0, __pyx_v_sub_schema};
-            __pyx_t_13 = __Pyx_PyCFunction_FastCall(__pyx_t_15, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 262, __pyx_L14_error)
+            __pyx_t_13 = __Pyx_PyCFunction_FastCall(__pyx_t_15, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 285, __pyx_L14_error)
             __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
             __Pyx_GOTREF(__pyx_t_13);
           } else
           #endif
           {
-            __pyx_t_14 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 262, __pyx_L14_error)
+            __pyx_t_14 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 285, __pyx_L14_error)
             __Pyx_GOTREF(__pyx_t_14);
             if (__pyx_t_7) {
               __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -5788,20 +6128,20 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
             __Pyx_INCREF(__pyx_v_sub_schema);
             __Pyx_GIVEREF(__pyx_v_sub_schema);
             PyTuple_SET_ITEM(__pyx_t_14, 1+__pyx_t_8, __pyx_v_sub_schema);
-            __pyx_t_13 = __Pyx_PyObject_Call(__pyx_t_15, __pyx_t_14, NULL); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 262, __pyx_L14_error)
+            __pyx_t_13 = __Pyx_PyObject_Call(__pyx_t_15, __pyx_t_14, NULL); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 285, __pyx_L14_error)
             __Pyx_GOTREF(__pyx_t_13);
             __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
           }
           __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
 
-          /* "fastavro/_schema.pyx":263
+          /* "fastavro/_schema.pyx":286
  *             # schema is already a list
  *             schema.insert(0, sub_schema)
  *             return _load_schema(schema, schema_dir)             # <<<<<<<<<<<<<<
  */
           __Pyx_XDECREF(__pyx_r);
-          __pyx_t_13 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_v_schema, __pyx_v_schema_dir); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 263, __pyx_L14_error)
+          __pyx_t_13 = __pyx_f_8fastavro_7_schema__load_schema(__pyx_v_schema, __pyx_v_schema_dir); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 286, __pyx_L14_error)
           __Pyx_GOTREF(__pyx_t_13);
           __pyx_r = __pyx_t_13;
           __pyx_t_13 = 0;
@@ -5812,7 +6152,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
         }
       }
 
-      /* "fastavro/_schema.pyx":251
+      /* "fastavro/_schema.pyx":274
  *     try:
  *         return parse_schema(schema)
  *     except UnknownType as e:             # <<<<<<<<<<<<<<
@@ -5871,7 +6211,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "fastavro/_schema.pyx":249
+    /* "fastavro/_schema.pyx":272
  * 
  * cdef _load_schema(schema, schema_dir):
  *     try:             # <<<<<<<<<<<<<<
@@ -5897,7 +6237,7 @@ static PyObject *__pyx_f_8fastavro_7_schema__load_schema(PyObject *__pyx_v_schem
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.pyx":248
+  /* "fastavro/_schema.pyx":271
  * 
  * 
  * cdef _load_schema(schema, schema_dir):             # <<<<<<<<<<<<<<
@@ -5999,6 +6339,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_decimal_precision_must_be_a_post, __pyx_k_decimal_precision_must_be_a_post, sizeof(__pyx_k_decimal_precision_must_be_a_post), 0, 0, 1, 0},
   {&__pyx_kp_s_decimal_scale_must_be_a_postive, __pyx_k_decimal_scale_must_be_a_postive, sizeof(__pyx_k_decimal_scale_must_be_a_postive), 0, 0, 1, 0},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
+  {&__pyx_n_s_double, __pyx_k_double, sizeof(__pyx_k_double), 0, 0, 1, 1},
   {&__pyx_n_s_enter, __pyx_k_enter, sizeof(__pyx_k_enter), 0, 0, 1, 1},
   {&__pyx_n_s_enum, __pyx_k_enum, sizeof(__pyx_k_enum), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
@@ -6010,6 +6351,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_fd, __pyx_k_fd, sizeof(__pyx_k_fd), 0, 0, 1, 1},
   {&__pyx_n_s_fields, __pyx_k_fields, sizeof(__pyx_k_fields), 0, 0, 1, 1},
   {&__pyx_n_s_fixed, __pyx_k_fixed, sizeof(__pyx_k_fixed), 0, 0, 1, 1},
+  {&__pyx_n_s_float, __pyx_k_float, sizeof(__pyx_k_float), 0, 0, 1, 1},
   {&__pyx_n_s_force, __pyx_k_force, sizeof(__pyx_k_force), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_get, __pyx_k_get, sizeof(__pyx_k_get), 0, 0, 1, 1},
@@ -6058,8 +6400,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 43, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 242, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 265, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 278, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -6069,14 +6411,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "fastavro/_schema.pyx":242
+  /* "fastavro/_schema.pyx":265
  *     `<type_name>.avsc`.
  *     '''
  *     with open(schema_path) as fd:             # <<<<<<<<<<<<<<
  *         schema = json.load(fd)
  *     schema_dir, schema_file = path.split(schema_path)
  */
-  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
@@ -6092,17 +6434,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__6);
   __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(4, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fastavro__schema_pyx, __pyx_n_s_parse_schema, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 61, __pyx_L1_error)
 
-  /* "fastavro/_schema.pyx":234
+  /* "fastavro/_schema.pyx":257
  * 
  * 
  * def load_schema(schema_path):             # <<<<<<<<<<<<<<
  *     '''
  *     Returns a schema loaded from the file at `schema_path`.
  */
-  __pyx_tuple__8 = PyTuple_Pack(5, __pyx_n_s_schema_path, __pyx_n_s_fd, __pyx_n_s_schema, __pyx_n_s_schema_dir, __pyx_n_s_schema_file); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 234, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(5, __pyx_n_s_schema_path, __pyx_n_s_fd, __pyx_n_s_schema, __pyx_n_s_schema_dir, __pyx_n_s_schema_file); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fastavro__schema_pyx, __pyx_n_s_load_schema, 234, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 234, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fastavro__schema_pyx, __pyx_n_s_load_schema, 257, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -6518,16 +6860,16 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_parse_schema, __pyx_t_2) < 0) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "fastavro/_schema.pyx":234
+  /* "fastavro/_schema.pyx":257
  * 
  * 
  * def load_schema(schema_path):             # <<<<<<<<<<<<<<
  *     '''
  *     Returns a schema loaded from the file at `schema_path`.
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_13load_schema, NULL, __pyx_n_s_fastavro__schema); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 234, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_13load_schema, NULL, __pyx_n_s_fastavro__schema); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_load_schema, __pyx_t_2) < 0) __PYX_ERR(0, 234, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_load_schema, __pyx_t_2) < 0) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "fastavro/_schema.pyx":1
@@ -7514,6 +7856,186 @@ bad:
     return -1;
 }
 
+/* BytesEquals */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+    if (s1 == s2) {
+        return (equals == Py_EQ);
+    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
+        const char *ps1, *ps2;
+        Py_ssize_t length = PyBytes_GET_SIZE(s1);
+        if (length != PyBytes_GET_SIZE(s2))
+            return (equals == Py_NE);
+        ps1 = PyBytes_AS_STRING(s1);
+        ps2 = PyBytes_AS_STRING(s2);
+        if (ps1[0] != ps2[0]) {
+            return (equals == Py_NE);
+        } else if (length == 1) {
+            return (equals == Py_EQ);
+        } else {
+            int result;
+#if CYTHON_USE_UNICODE_INTERNALS
+            Py_hash_t hash1, hash2;
+            hash1 = ((PyBytesObject*)s1)->ob_shash;
+            hash2 = ((PyBytesObject*)s2)->ob_shash;
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                return (equals == Py_NE);
+            }
+#endif
+            result = memcmp(ps1, ps2, (size_t)length);
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
+        return (equals == Py_NE);
+    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
+        return (equals == Py_NE);
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+#endif
+}
+
+/* UnicodeEquals */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+#if PY_MAJOR_VERSION < 3
+    PyObject* owned_ref = NULL;
+#endif
+    int s1_is_unicode, s2_is_unicode;
+    if (s1 == s2) {
+        goto return_eq;
+    }
+    s1_is_unicode = PyUnicode_CheckExact(s1);
+    s2_is_unicode = PyUnicode_CheckExact(s2);
+#if PY_MAJOR_VERSION < 3
+    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
+        owned_ref = PyUnicode_FromObject(s2);
+        if (unlikely(!owned_ref))
+            return -1;
+        s2 = owned_ref;
+        s2_is_unicode = 1;
+    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
+        owned_ref = PyUnicode_FromObject(s1);
+        if (unlikely(!owned_ref))
+            return -1;
+        s1 = owned_ref;
+        s1_is_unicode = 1;
+    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
+        return __Pyx_PyBytes_Equals(s1, s2, equals);
+    }
+#endif
+    if (s1_is_unicode & s2_is_unicode) {
+        Py_ssize_t length;
+        int kind;
+        void *data1, *data2;
+        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
+            return -1;
+        length = __Pyx_PyUnicode_GET_LENGTH(s1);
+        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
+            goto return_ne;
+        }
+#if CYTHON_USE_UNICODE_INTERNALS
+        {
+            Py_hash_t hash1, hash2;
+        #if CYTHON_PEP393_ENABLED
+            hash1 = ((PyASCIIObject*)s1)->hash;
+            hash2 = ((PyASCIIObject*)s2)->hash;
+        #else
+            hash1 = ((PyUnicodeObject*)s1)->hash;
+            hash2 = ((PyUnicodeObject*)s2)->hash;
+        #endif
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                goto return_ne;
+            }
+        }
+#endif
+        kind = __Pyx_PyUnicode_KIND(s1);
+        if (kind != __Pyx_PyUnicode_KIND(s2)) {
+            goto return_ne;
+        }
+        data1 = __Pyx_PyUnicode_DATA(s1);
+        data2 = __Pyx_PyUnicode_DATA(s2);
+        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
+            goto return_ne;
+        } else if (length == 1) {
+            goto return_eq;
+        } else {
+            int result = memcmp(data1, data2, (size_t)(length * kind));
+            #if PY_MAJOR_VERSION < 3
+            Py_XDECREF(owned_ref);
+            #endif
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & s2_is_unicode) {
+        goto return_ne;
+    } else if ((s2 == Py_None) & s1_is_unicode) {
+        goto return_ne;
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        #if PY_MAJOR_VERSION < 3
+        Py_XDECREF(owned_ref);
+        #endif
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+return_eq:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_EQ);
+return_ne:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_NE);
+#endif
+}
+
+/* GetAttr */
+static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *o, PyObject *n) {
+#if CYTHON_USE_TYPE_SLOTS
+#if PY_MAJOR_VERSION >= 3
+    if (likely(PyUnicode_Check(n)))
+#else
+    if (likely(PyString_Check(n)))
+#endif
+        return __Pyx_PyObject_GetAttrStr(o, n);
+#endif
+    return PyObject_GetAttr(o, n);
+}
+
+/* HasAttr */
+static CYTHON_INLINE int __Pyx_HasAttr(PyObject *o, PyObject *n) {
+    PyObject *r;
+    if (unlikely(!__Pyx_PyBaseString_Check(n))) {
+        PyErr_SetString(PyExc_TypeError,
+                        "hasattr(): attribute name must be string");
+        return -1;
+    }
+    r = __Pyx_GetAttr(o, n);
+    if (unlikely(!r)) {
+        PyErr_Clear();
+        return 0;
+    } else {
+        Py_DECREF(r);
+        return 1;
+    }
+}
+
 /* ObjectGetItem */
 #if CYTHON_USE_TYPE_SLOTS
 static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
@@ -7759,155 +8281,6 @@ static PyObject* __Pyx_PyDict_GetItemDefault(PyObject* d, PyObject* key, PyObjec
             value = __Pyx_CallUnboundCMethod2(&__pyx_umethod_PyDict_Type_get, d, key, default_value);
     }
     return value;
-}
-
-/* BytesEquals */
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-    if (s1 == s2) {
-        return (equals == Py_EQ);
-    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
-        const char *ps1, *ps2;
-        Py_ssize_t length = PyBytes_GET_SIZE(s1);
-        if (length != PyBytes_GET_SIZE(s2))
-            return (equals == Py_NE);
-        ps1 = PyBytes_AS_STRING(s1);
-        ps2 = PyBytes_AS_STRING(s2);
-        if (ps1[0] != ps2[0]) {
-            return (equals == Py_NE);
-        } else if (length == 1) {
-            return (equals == Py_EQ);
-        } else {
-            int result;
-#if CYTHON_USE_UNICODE_INTERNALS
-            Py_hash_t hash1, hash2;
-            hash1 = ((PyBytesObject*)s1)->ob_shash;
-            hash2 = ((PyBytesObject*)s2)->ob_shash;
-            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
-                return (equals == Py_NE);
-            }
-#endif
-            result = memcmp(ps1, ps2, (size_t)length);
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
-        return (equals == Py_NE);
-    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
-        return (equals == Py_NE);
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-#endif
-}
-
-/* UnicodeEquals */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-#if PY_MAJOR_VERSION < 3
-    PyObject* owned_ref = NULL;
-#endif
-    int s1_is_unicode, s2_is_unicode;
-    if (s1 == s2) {
-        goto return_eq;
-    }
-    s1_is_unicode = PyUnicode_CheckExact(s1);
-    s2_is_unicode = PyUnicode_CheckExact(s2);
-#if PY_MAJOR_VERSION < 3
-    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
-        owned_ref = PyUnicode_FromObject(s2);
-        if (unlikely(!owned_ref))
-            return -1;
-        s2 = owned_ref;
-        s2_is_unicode = 1;
-    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
-        owned_ref = PyUnicode_FromObject(s1);
-        if (unlikely(!owned_ref))
-            return -1;
-        s1 = owned_ref;
-        s1_is_unicode = 1;
-    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
-        return __Pyx_PyBytes_Equals(s1, s2, equals);
-    }
-#endif
-    if (s1_is_unicode & s2_is_unicode) {
-        Py_ssize_t length;
-        int kind;
-        void *data1, *data2;
-        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
-            return -1;
-        length = __Pyx_PyUnicode_GET_LENGTH(s1);
-        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
-            goto return_ne;
-        }
-#if CYTHON_USE_UNICODE_INTERNALS
-        {
-            Py_hash_t hash1, hash2;
-        #if CYTHON_PEP393_ENABLED
-            hash1 = ((PyASCIIObject*)s1)->hash;
-            hash2 = ((PyASCIIObject*)s2)->hash;
-        #else
-            hash1 = ((PyUnicodeObject*)s1)->hash;
-            hash2 = ((PyUnicodeObject*)s2)->hash;
-        #endif
-            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
-                goto return_ne;
-            }
-        }
-#endif
-        kind = __Pyx_PyUnicode_KIND(s1);
-        if (kind != __Pyx_PyUnicode_KIND(s2)) {
-            goto return_ne;
-        }
-        data1 = __Pyx_PyUnicode_DATA(s1);
-        data2 = __Pyx_PyUnicode_DATA(s2);
-        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
-            goto return_ne;
-        } else if (length == 1) {
-            goto return_eq;
-        } else {
-            int result = memcmp(data1, data2, (size_t)(length * kind));
-            #if PY_MAJOR_VERSION < 3
-            Py_XDECREF(owned_ref);
-            #endif
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & s2_is_unicode) {
-        goto return_ne;
-    } else if ((s2 == Py_None) & s1_is_unicode) {
-        goto return_ne;
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        #if PY_MAJOR_VERSION < 3
-        Py_XDECREF(owned_ref);
-        #endif
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-return_eq:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_EQ);
-return_ne:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_NE);
-#endif
 }
 
 /* PyObjectCallNoArg */
